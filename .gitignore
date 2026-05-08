@@ -1,0 +1,9 @@
+# 排除子项目的 .git 目录
+front-project/.git/
+end-project/.git/
+
+# 排除课件文件夹
+课件/
+
+# IDE 配置
+.idea/
