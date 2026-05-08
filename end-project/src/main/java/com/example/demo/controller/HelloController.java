@@ -1,14 +1,23 @@
 package com.example.demo.controller;
 
-import org.springframework.stereotype.Controller;
+import com.example.demo.service.GreetingService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class HelloController {
 
+    @Autowired
+    private GreetingService greetingService;
+
     @GetMapping("/hello")
     public String hello() {
-        return "恭喜！第1个Controller跑通了，奖励一个Hello！";
+        return greetingService.getGreeting();
+    }
+
+    @GetMapping("/time-greeting")
+    public String timeBasedGreeting() {
+        return greetingService.timeGreeting();
     }
 }
