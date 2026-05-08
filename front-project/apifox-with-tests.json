@@ -1,0 +1,265 @@
+{
+  "info": {
+    "name": "电商商品API",
+    "description": "电商前端商品管理接口，包含分页查询和分类筛选功能",
+    "version": "1.0.0"
+  },
+  "item": [
+    {
+      "name": "商品",
+      "item": [
+        {
+          "name": "获取所有商品",
+          "request": {
+            "method": "GET",
+            "url": "/api/products",
+            "description": "获取所有商品列表"
+          },
+          "response": [
+            {
+              "name": "成功",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": 1,\n      \"name\": \"iPhone 15 Pro\",\n      \"description\": \"A17 Pro芯片，钛金属设计，支持USB-C接口，5G网络\",\n      \"price\": 7999,\n      \"image\": \"https://picsum.photos/id/1/300/300\",\n      \"category\": \"手机\",\n      \"brand\": \"Apple\",\n      \"stock\": 50\n    }\n  ]\n}",
+              "contentType": "application/json"
+            }
+          ],
+          "test": {
+            "name": "获取所有商品-成功",
+            "body": "// 断言响应成功\npm.test(\"响应成功\", function() {\n    pm.response.to.have.status(200);\n});\n\n// 断言返回数据是数组\npm.test(\"返回数据是数组\", function() {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.data).to.be.an('array');\n});\n\n// 断言success为true\npm.test(\"success为true\", function() {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.success).to.equal(true);\n});\n\n// 断言商品数量大于0\npm.test(\"商品数量大于0\", function() {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.data.length).to.be.above(0);\n});"
+          }
+        },
+        {
+          "name": "根据ID获取商品-成功",
+          "request": {
+            "method": "GET",
+            "url": "/api/products/1",
+            "description": "根据商品ID获取商品详情"
+          },
+          "response": [
+            {
+              "name": "成功",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": 1,\n    \"name\": \"iPhone 15 Pro\",\n    \"description\": \"A17 Pro芯片，钛金属设计，支持USB-C接口，5G网络\",\n    \"price\": 7999,\n    \"image\": \"https://picsum.photos/id/1/300/300\",\n    \"category\": \"手机\",\n    \"brand\": \"Apple\",\n    \"stock\": 50\n  }\n}",
+              "contentType": "application/json"
+            },
+            {
+              "name": "商品不存在",
+              "code": 404,
+              "body": "{\n  \"success\": false,\n  \"message\": \"商品不存在\"\n}",
+              "contentType": "application/json"
+            }
+          ],
+          "test": {
+            "name": "根据ID获取商品-成功",
+            "body": "// 断言响应成功\npm.test(\"响应成功\", function() {\n    pm.response.to.have.status(200);\n});\n\n// 断言返回数据是对象\npm.test(\"返回数据是对象\", function() {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.data).to.be.an('object');\n});\n\n// 断言商品ID正确\npm.test(\"商品ID正确\", function() {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.data.id).to.equal(1);\n});\n\n// 断言商品名称正确\npm.test(\"商品名称正确\", function() {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.data.name).to.equal(\"iPhone 15 Pro\");\n});"
+          }
+        },
+        {
+          "name": "根据ID获取商品-不存在",
+          "request": {
+            "method": "GET",
+            "url": "/api/products/999",
+            "description": "根据不存在的商品ID获取商品"
+          },
+          "response": [
+            {
+              "name": "商品不存在",
+              "code": 404,
+              "body": "{\n  \"success\": false,\n  \"message\": \"商品不存在\"\n}",
+              "contentType": "application/json"
+            }
+          ],
+          "test": {
+            "name": "根据ID获取商品-不存在",
+            "body": "// 断言响应404\npm.test(\"响应404\", function() {\n    pm.response.to.have.status(404);\n});\n\n// 断言success为false\npm.test(\"success为false\", function() {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.success).to.equal(false);\n});\n\n// 断言错误消息\npm.test(\"错误消息正确\", function() {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.message).to.equal(\"商品不存在\");\n});"
+          }
+        },
+        {
+          "name": "搜索商品-成功",
+          "request": {
+            "method": "GET",
+            "url": "/api/products/search?keyword=iPhone",
+            "description": "根据关键词搜索商品"
+          },
+          "response": [
+            {
+              "name": "成功",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": 1,\n      \"name\": \"iPhone 15 Pro\",\n      \"description\": \"A17 Pro芯片，钛金属设计，支持USB-C接口，5G网络\",\n      \"price\": 7999,\n      \"image\": \"https://picsum.photos/id/1/300/300\",\n      \"category\": \"手机\",\n      \"brand\": \"Apple\",\n      \"stock\": 50\n    }\n  ]\n}",
+              "contentType": "application/json"
+            }
+          ],
+          "test": {
+            "name": "搜索商品-成功",
+            "body": "// 断言响应成功\npm.test(\"响应成功\", function() {\n    pm.response.to.have.status(200);\n});\n\n// 断言返回数据是数组\npm.test(\"返回数据是数组\", function() {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.data).to.be.an('array');\n});\n\n// 断言搜索结果包含关键词\npm.test(\"搜索结果包含关键词\", function() {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.data.length).to.be.above(0);\n    pm.expect(jsonData.data[0].name).to.include(\"iPhone\");\n});"
+          }
+        },
+        {
+          "name": "搜索商品-无结果",
+          "request": {
+            "method": "GET",
+            "url": "/api/products/search?keyword=不存在的商品",
+            "description": "搜索不存在的商品"
+          },
+          "response": [
+            {
+              "name": "无结果",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": []\n}",
+              "contentType": "application/json"
+            }
+          ],
+          "test": {
+            "name": "搜索商品-无结果",
+            "body": "// 断言响应成功\npm.test(\"响应成功\", function() {\n    pm.response.to.have.status(200);\n});\n\n// 断言返回空数组\npm.test(\"返回空数组\", function() {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.data).to.be.an('array');\n    pm.expect(jsonData.data.length).to.equal(0);\n});"
+          }
+        },
+        {
+          "name": "分页查询商品-第一页",
+          "request": {
+            "method": "GET",
+            "url": "/api/products/page?page=1&pageSize=4",
+            "description": "分页查询商品-第一页，每页4条"
+          },
+          "response": [
+            {
+              "name": "成功",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"items\": [],\n    \"total\": 8,\n    \"page\": 1,\n    \"pageSize\": 4\n  }\n}",
+              "contentType": "application/json"
+            }
+          ],
+          "test": {
+            "name": "分页查询商品-第一页",
+            "body": "// 断言响应成功\npm.test(\"响应成功\", function() {\n    pm.response.to.have.status(200);\n});\n\n// 断言返回数据结构正确\npm.test(\"返回数据结构正确\", function() {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.data).to.have.property('items');\n    pm.expect(jsonData.data).to.have.property('total');\n    pm.expect(jsonData.data).to.have.property('page');\n    pm.expect(jsonData.data).to.have.property('pageSize');\n});\n\n// 断言分页参数正确\npm.test(\"分页参数正确\", function() {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.data.page).to.equal(1);\n    pm.expect(jsonData.data.pageSize).to.equal(4);\n});\n\n// 断言返回4条数据\npm.test(\"返回4条数据\", function() {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.data.items.length).to.equal(4);\n});"
+          }
+        },
+        {
+          "name": "分页查询商品-第二页",
+          "request": {
+            "method": "GET",
+            "url": "/api/products/page?page=2&pageSize=4",
+            "description": "分页查询商品-第二页，每页4条"
+          },
+          "response": [
+            {
+              "name": "成功",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"items\": [],\n    \"total\": 8,\n    \"page\": 2,\n    \"pageSize\": 4\n  }\n}",
+              "contentType": "application/json"
+            }
+          ],
+          "test": {
+            "name": "分页查询商品-第二页",
+            "body": "// 断言响应成功\npm.test(\"响应成功\", function() {\n    pm.response.to.have.status(200);\n});\n\n// 断言分页参数正确\npm.test(\"分页参数正确\", function() {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.data.page).to.equal(2);\n    pm.expect(jsonData.data.pageSize).to.equal(4);\n});\n\n// 断言返回4条数据\npm.test(\"返回4条数据\", function() {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.data.items.length).to.equal(4);\n});"
+          }
+        },
+        {
+          "name": "分页查询商品-分类筛选",
+          "request": {
+            "method": "GET",
+            "url": "/api/products/page?page=1&pageSize=10&category=手机",
+            "description": "分页查询商品-分类筛选：手机"
+          },
+          "response": [
+            {
+              "name": "成功",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"items\": [],\n    \"total\": 2,\n    \"page\": 1,\n    \"pageSize\": 10\n  }\n}",
+              "contentType": "application/json"
+            }
+          ],
+          "test": {
+            "name": "分页查询商品-分类筛选",
+            "body": "// 断言响应成功\npm.test(\"响应成功\", function() {\n    pm.response.to.have.status(200);\n});\n\n// 断言返回数据总数为2\npm.test(\"返回数据总数为2\", function() {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.data.total).to.equal(2);\n});\n\n// 断言所有商品分类为手机\npm.test(\"所有商品分类为手机\", function() {\n    var jsonData = pm.response.json();\n    jsonData.data.items.forEach(function(item) {\n        pm.expect(item.category).to.equal(\"手机\");\n    });\n});"
+          }
+        },
+        {
+          "name": "分页查询商品-关键词搜索",
+          "request": {
+            "method": "GET",
+            "url": "/api/products/page?page=1&pageSize=10&keyword=Apple",
+            "description": "分页查询商品-关键词搜索Apple"
+          },
+          "response": [
+            {
+              "name": "成功",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"items\": [],\n    \"total\": 5,\n    \"page\": 1,\n    \"pageSize\": 10\n  }\n}",
+              "contentType": "application/json"
+            }
+          ],
+          "test": {
+            "name": "分页查询商品-关键词搜索",
+            "body": "// 断言响应成功\npm.test(\"响应成功\", function() {\n    pm.response.to.have.status(200);\n});\n\n// 断言返回数据总数为5\npm.test(\"返回数据总数为5\", function() {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.data.total).to.equal(5);\n});\n\n// 断言所有商品包含Apple关键词\npm.test(\"所有商品包含Apple关键词\", function() {\n    var jsonData = pm.response.json();\n    jsonData.data.items.forEach(function(item) {\n        var hasKeyword = item.name.includes(\"Apple\") || \n                        item.brand.includes(\"Apple\") || \n                        item.description.includes(\"Apple\");\n        pm.expect(hasKeyword).to.equal(true);\n    });\n});"
+          }
+        },
+        {
+          "name": "分页查询商品-分类筛选+关键词搜索",
+          "request": {
+            "method": "GET",
+            "url": "/api/products/page?page=1&pageSize=10&category=手机&keyword=iPhone",
+            "description": "分页查询商品-分类筛选+关键词搜索"
+          },
+          "response": [
+            {
+              "name": "成功",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"items\": [],\n    \"total\": 1,\n    \"page\": 1,\n    \"pageSize\": 10\n  }\n}",
+              "contentType": "application/json"
+            }
+          ],
+          "test": {
+            "name": "分页查询商品-分类筛选+关键词搜索",
+            "body": "// 断言响应成功\npm.test(\"响应成功\", function() {\n    pm.response.to.have.status(200);\n});\n\n// 断言返回数据总数为1\npm.test(\"返回数据总数为1\", function() {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.data.total).to.equal(1);\n});\n\n// 断言商品同时满足分类和关键词\npm.test(\"商品同时满足分类和关键词\", function() {\n    var jsonData = pm.response.json();\n    jsonData.data.items.forEach(function(item) {\n        pm.expect(item.category).to.equal(\"手机\");\n        pm.expect(item.name).to.include(\"iPhone\");\n    });\n});"
+          }
+        },
+        {
+          "name": "分页查询商品-分页大小变更",
+          "request": {
+            "method": "GET",
+            "url": "/api/products/page?page=1&pageSize=2",
+            "description": "分页查询商品-每页2条"
+          },
+          "response": [
+            {
+              "name": "成功",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"items\": [],\n    \"total\": 8,\n    \"page\": 1,\n    \"pageSize\": 2\n  }\n}",
+              "contentType": "application/json"
+            }
+          ],
+          "test": {
+            "name": "分页查询商品-分页大小变更",
+            "body": "// 断言响应成功\npm.test(\"响应成功\", function() {\n    pm.response.to.have.status(200);\n});\n\n// 断言每页返回2条数据\npm.test(\"每页返回2条数据\", function() {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.data.items.length).to.equal(2);\n    pm.expect(jsonData.data.pageSize).to.equal(2);\n});\n\n// 断言总页数为4\npm.test(\"总页数为4\", function() {\n    var jsonData = pm.response.json();\n    pm.expect(Math.ceil(jsonData.data.total / jsonData.data.pageSize)).to.equal(4);\n});"
+          }
+        }
+      ]
+    },
+    {
+      "name": "分类",
+      "item": [
+        {
+          "name": "获取所有分类",
+          "request": {
+            "method": "GET",
+            "url": "/api/categories",
+            "description": "获取所有商品分类"
+          },
+          "response": [
+            {
+              "name": "成功",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": [\"手机\", \"笔记本电脑\", \"平板电脑\", \"耳机\"]\n}",
+              "contentType": "application/json"
+            }
+          ],
+          "test": {
+            "name": "获取所有分类-成功",
+            "body": "// 断言响应成功\npm.test(\"响应成功\", function() {\n    pm.response.to.have.status(200);\n});\n\n// 断言返回数据是数组\npm.test(\"返回数据是数组\", function() {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.data).to.be.an('array');\n});\n\n// 断言分类数量为4\npm.test(\"分类数量为4\", function() {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.data.length).to.equal(4);\n});\n\n// 断言包含预期分类\npm.test(\"包含预期分类\", function() {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.data).to.include(\"手机\");\n    pm.expect(jsonData.data).to.include(\"笔记本电脑\");\n    pm.expect(jsonData.data).to.include(\"平板电脑\");\n    pm.expect(jsonData.data).to.include(\"耳机\");\n});"
+          }
+        }
+      ]
+    }
+  ]
+}

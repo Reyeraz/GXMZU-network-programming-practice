@@ -1,0 +1,26 @@
+### 获取所有商品
+GET http://localhost:3000/api/products
+
+### 根据ID获取商品
+GET http://localhost:3000/api/products/1
+
+### 搜索商品
+GET http://localhost:3000/api/products/search?keyword=iPhone
+
+### 分页查询商品（第一页，每页4条）
+GET http://localhost:3000/api/products/page?page=1&pageSize=4
+
+### 分页查询商品（第二页，每页4条）
+GET http://localhost:3000/api/products/page?page=2&pageSize=4
+
+### 分页查询商品（分类筛选：手机）
+GET http://localhost:3000/api/products/page?page=1&pageSize=4&category=手机
+
+### 分页查询商品（关键词搜索）
+GET http://localhost:3000/api/products/page?page=1&pageSize=4&keyword=Apple
+
+### 分页查询商品（分类筛选 + 关键词搜索）
+GET http://localhost:3000/api/products/page?page=1&pageSize=4&category=手机&keyword=iPhone
+
+### 获取所有分类
+GET http://localhost:3000/api/categories

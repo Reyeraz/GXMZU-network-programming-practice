@@ -1,0 +1,238 @@
+openapi: 3.0.0
+info:
+  title: 电商商品API
+  description: 电商前端商品管理接口，包含分页查询和分类筛选功能
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+    description: Mock API 服务器
+
+paths:
+  /api/products:
+    get:
+      summary: 获取所有商品
+      description: 获取所有商品列表
+      operationId: getAllProducts
+      tags:
+        - 商品
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+
+  /api/products/{id}:
+    get:
+      summary: 根据ID获取商品
+      description: 根据商品ID获取商品详情
+      operationId: getProductById
+      tags:
+        - 商品
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 商品ID
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Product'
+        '404':
+          description: 商品不存在
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 商品不存在
+
+  /api/products/search:
+    get:
+      summary: 搜索商品
+      description: 根据关键词搜索商品
+      operationId: searchProducts
+      tags:
+        - 商品
+      parameters:
+        - name: keyword
+          in: query
+          required: true
+          description: 搜索关键词
+          schema:
+            type: string
+            example: iPhone
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+
+  /api/products/page:
+    get:
+      summary: 分页查询商品
+      description: 分页查询商品，支持分类筛选和关键词搜索
+      operationId: getProductsByPage
+      tags:
+        - 商品
+      parameters:
+        - name: page
+          in: query
+          required: true
+          description: 当前页码
+          schema:
+            type: integer
+            example: 1
+        - name: pageSize
+          in: query
+          required: true
+          description: 每页条数
+          schema:
+            type: integer
+            example: 4
+        - name: category
+          in: query
+          required: false
+          description: 商品分类
+          schema:
+            type: string
+            enum:
+              - 手机
+              - 笔记本电脑
+              - 平板电脑
+              - 耳机
+        - name: keyword
+          in: query
+          required: false
+          description: 搜索关键词
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Product'
+                      total:
+                        type: integer
+                        example: 8
+                      page:
+                        type: integer
+                        example: 1
+                      pageSize:
+                        type: integer
+                        example: 4
+
+  /api/categories:
+    get:
+      summary: 获取所有分类
+      description: 获取所有商品分类
+      operationId: getCategories
+      tags:
+        - 分类
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - 手机
+                      - 笔记本电脑
+                      - 平板电脑
+                      - 耳机
+
+components:
+  schemas:
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 商品ID
+          example: 1
+        name:
+          type: string
+          description: 商品名称
+          example: iPhone 15 Pro
+        description:
+          type: string
+          description: 商品描述
+          example: A17 Pro芯片，钛金属设计，支持USB-C接口，5G网络
+        price:
+          type: number
+          description: 商品价格
+          example: 7999
+        image:
+          type: string
+          description: 商品图片URL
+          example: https://picsum.photos/id/1/300/300
+        category:
+          type: string
+          description: 商品分类
+          example: 手机
+        brand:
+          type: string
+          description: 商品品牌
+          example: Apple
+        stock:
+          type: integer
+          description: 库存数量
+          example: 50

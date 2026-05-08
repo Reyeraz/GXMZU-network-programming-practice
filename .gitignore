@@ -7,3 +7,6 @@ end-project/.git/
 
 # IDE 配置
 .idea/
+
+# Claude Code 配置
+.claude/
