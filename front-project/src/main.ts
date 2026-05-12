@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
+import { createPinia } from 'pinia'
 import App from './App.vue'
 import ProductList from './views/ProductList.vue'
 import ProductDetail from './views/ProductDetail.vue'
@@ -32,8 +33,14 @@ const router = createRouter({
 // 创建Vue应用
 const app = createApp(App)
 
+// 创建 Pinia 实例
+const pinia = createPinia()
+
 // 使用路由
 app.use(router)
+
+// 使用 Pinia
+app.use(pinia)
 
 // 使用Element-Plus
 app.use(ElementPlus)

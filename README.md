@@ -41,6 +41,17 @@
 - **课堂练习**: 创建 HelloController → 浏览器/ApiFox 测试 → 理解 @RestController 和 @GetMapping
 - **拓展**: 实现完整商品管理 CRUD REST API（8 个接口）
 
+### 第12次课 - Spring IoC
+- **PDF**: `课件/第12次课-Spring IoC.pdf` (5页)
+- **完成日期**: 2026-05-08
+- **产出**:
+  - `end-project/src/main/java/com/example/demo/service/GreetingService.java` — 使用 @Service 的业务服务 Bean
+  - `end-project/src/main/java/com/example/demo/controller/HelloController.java` — 更新为使用 @Autowired 依赖注入
+  - `课件/第12次课-Spring IoC/额外文件/api-test-ioc.http` — API 测试文件
+- **课堂练习**: 
+  - 练习1：删除 @Service → 观察错误，理解容器管理 Bean
+  - 练习2：添加 timeGreeting() 方法和 /time-greeting 接口 → 理解单例 Bean 行为
+
 ## 项目结构
 
 ```
@@ -51,13 +62,16 @@
 │   ├── 第11次课-服务器后端项目搭建.pdf
 │   ├── 第11次课-API接口文档.pdf
 │   ├── 第12次课-搭建第一个Web API接口.pdf
+│   ├── 第12次课-Spring IoC.pdf
 │   ├── 第11次课-API接口文档/额外文件/
 │   │   ├── product_table.sql
 │   │   └── API接口文档-商品管理.md
 │   ├── 第11次课-Maven项目管理工具/额外文件/    # (空目录)
 │   ├── 第11次课-服务器后端项目搭建/额外文件/   # (空目录)
-│   └── 第12次课-搭建第一个Web API接口/额外文件/
-│       └── api-test-backend.http
+│   ├── 第12次课-搭建第一个Web API接口/额外文件/
+│   │   └── api-test-backend.http
+│   └── 第12次课-Spring IoC/额外文件/
+│       └── api-test-ioc.http
 ├── front-project/                     # Vue.js 前端项目（第7-10次课）
 └── end-project/                       # Spring Boot 后端项目（第11-12次课）
     ├── pom.xml
@@ -67,6 +81,8 @@
         ├── controller/
         │   ├── HelloController.java
         │   └── ProductController.java
+        ├── service/
+        │   └── GreetingService.java
         ├── model/
         │   ├── Product.java
         │   ├── ApiResponse.java

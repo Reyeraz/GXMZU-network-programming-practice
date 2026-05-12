@@ -43,7 +43,7 @@
                     :step="1"
                     size="small"
                     style="width: 100px;"
-                    @change="updateCart"
+                    @change="(val) => updateCart(item, val)"
                   />
                   <el-button 
                     type="danger" 
@@ -85,10 +85,13 @@
             </el-button>
           </router-link>
           <router-link to="/checkout">
-            <el-button type="primary" size="large" style="width: 100%;">
+            <el-button type="primary" size="large" style="width: 100%; margin-bottom: 0.75rem;">
               去结算
             </el-button>
           </router-link>
+          <el-button type="danger" size="large" style="width: 100%;" @click="clearCart">
+            清空购物车
+          </el-button>
         </div>
       </el-card>
     </div>
@@ -96,62 +99,39 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, watchEffect } from 'vue'
+import { computed, onMounted, watch } from 'vue'
+import { useCartStore } from '../stores/cart'
 
-// 购物车商品
-const cartItems = ref([])
+const cartStore = useCartStore()
 
-// 从localStorage获取购物车数据
-const loadCart = () => {
-  const cart = JSON.parse(localStorage.getItem('cart') || '[]')
-  cartItems.value = cart
-}
+// 从 store 获取购物车数据
+const cartItems = computed(() => cartStore.items)
+const totalQuantity = computed(() => cartStore.totalQuantity)
+const totalPrice = computed(() => cartStore.totalPrice)
 
-// 保存购物车数据到localStorage
-const saveCart = () => {
-  localStorage.setItem('cart', JSON.stringify(cartItems.value))
-  // 触发storage事件，更新App组件中的购物车数量
-  window.dispatchEvent(new Event('storage'))
-}
-
-// 更新购物车
-const updateCart = () => {
-  saveCart()
+// 更新商品数量
+const updateCart = (item, quantity) => {
+  cartStore.updateQuantity(item.id, quantity)
 }
 
 // 删除商品
 const removeItem = (item) => {
-  const index = cartItems.value.findIndex(cartItem => cartItem.id === item.id)
-  if (index !== -1) {
-    cartItems.value.splice(index, 1)
-    saveCart()
-  }
+  cartStore.removeFromCart(item.id)
 }
 
-// 计算商品总数
-const totalQuantity = computed(() => {
-  return cartItems.value.reduce((total, item) => total + item.quantity, 0)
-})
+// 清空购物车
+const clearCart = () => {
+  cartStore.clearCart()
+}
 
-// 计算商品总价
-const totalPrice = computed(() => {
-  return cartItems.value.reduce((total, item) => total + (item.price * item.quantity), 0)
-})
-
-// 页面加载时获取购物车数据
 onMounted(() => {
-  loadCart()
-})
-
-// 监听购物车数据变化，保存到localStorage
-watchEffect(() => {
-  saveCart()
+  cartStore.loadCart()
 })
 
 // 监听总价变化，当超过3000元时弹窗提示
 watch(totalPrice, (newValue) => {
   if (newValue > 3000) {
-    alert('已满⾜包邮条件')
+    alert('已满足包邮条件')
   }
 })
 </script>

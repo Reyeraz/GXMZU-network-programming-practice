@@ -5,8 +5,9 @@
         <div class="success-icon">
           <el-icon class="success-icon-inner"><Check /></el-icon>
         </div>
-        <h1 class="success-title">订单已提交</h1>
+        <h1 class="success-title">下单成功！</h1>
         <p class="order-info">订单号为：<span class="order-no">{{ orderNo }}</span></p>
+        <p class="redirect-hint">{{ countdown }} 秒后自动返回首页</p>
         <div class="success-actions">
           <router-link to="/" class="action-link">
             <el-button type="primary" size="large">返回首页</el-button>
@@ -21,26 +22,36 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Check } from '@element-plus/icons-vue'
 
-// 获取路由实例
 const route = useRoute()
 const router = useRouter()
 
-// 订单号
 const orderNo = ref('')
+const countdown = ref(5)
+let timer = null
 
-// 页面加载时获取订单号
 onMounted(() => {
-  // 从路由query参数中获取订单号
   orderNo.value = route.query.orderNo || ''
-  
-  // 如果没有订单号，跳转到首页
+
   if (!orderNo.value) {
     router.push('/')
+    return
   }
+
+  timer = setInterval(() => {
+    countdown.value--
+    if (countdown.value <= 0) {
+      clearInterval(timer)
+      router.push('/')
+    }
+  }, 1000)
+})
+
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
 })
 </script>
 
@@ -89,8 +100,14 @@ onMounted(() => {
 .order-info {
   font-size: 1.1rem;
   color: #606266;
-  margin-bottom: 2.5rem;
+  margin-bottom: 0.5rem;
   line-height: 1.6;
+}
+
+.redirect-hint {
+  color: #909399;
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
 }
 
 .order-no {

@@ -36,6 +36,11 @@
               {{ product.stock > 0 ? `库存: ${product.stock}` : '缺货' }}
             </el-tag>
           </div>
+          <!-- 促销标签子组件 -->
+          <PromotionTag :promotion="product.promotion" />
+          <!-- 倒计时子组件 -->
+          <CountdownTimer :end-time="product.promotion?.endTime || ''" />
+
           <div class="product-detail-price">¥{{ product.price.toFixed(2) }}</div>
           <div class="product-detail-description">
             <h3>商品描述</h3>
@@ -75,6 +80,9 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { productAPI } from '../api/api.js'
+import PromotionTag from '../components/PromotionTag.vue'
+import CountdownTimer from '../components/CountdownTimer.vue'
+import { useCartStore } from '../stores/cart'
 
 // 接收路由参数
 const props = defineProps(['id'])
@@ -109,40 +117,23 @@ const fetchProductDetail = async () => {
   }
 }
 
+const cartStore = useCartStore()
+
 // 添加到购物车
 const addToCart = () => {
   if (!product.value || product.value.stock <= 0) return
-  
-  // 从localStorage获取购物车数据
-  const cart = JSON.parse(localStorage.getItem('cart') || '[]')
-  
-  // 检查商品是否已在购物车中
-  const existingItemIndex = cart.findIndex(item => item.id === product.value.id)
-  
-  if (existingItemIndex !== -1) {
-    // 已存在，增加数量
-    cart[existingItemIndex].quantity += quantity.value
-  } else {
-    // 不存在，添加新商品
-    cart.push({
+
+  cartStore.addToCart(
+    {
       id: product.value.id,
       name: product.value.name,
       price: product.value.price,
-      image: product.value.image,
-      quantity: quantity.value
-    })
-  }
-  
-  // 保存到localStorage
-  localStorage.setItem('cart', JSON.stringify(cart))
-  
-  // 触发storage事件，更新App组件中的购物车数量
-  window.dispatchEvent(new Event('storage'))
-  
-  // 提示用户
+      image: product.value.image
+    },
+    quantity.value
+  )
+
   alert('商品已加入购物车')
-  
-  // 重置数量
   quantity.value = 1
 }
 

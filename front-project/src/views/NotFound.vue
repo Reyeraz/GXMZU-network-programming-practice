@@ -5,16 +5,39 @@
         <h1 class="not-found-title">404</h1>
         <h2 class="not-found-subtitle">页面不存在</h2>
         <p class="not-found-message">抱歉，您访问的页面不存在或已被删除</p>
-        <router-link to="/" class="not-found-link">
-          <el-button type="primary" size="large">返回首页</el-button>
-        </router-link>
+        <p class="redirect-hint">{{ countdown }} 秒后自动返回首页</p>
+        <div class="not-found-actions">
+          <router-link to="/" class="not-found-link">
+            <el-button type="primary" size="large">返回首页</el-button>
+          </router-link>
+          <el-button size="large" @click="router.back()">返回上一页</el-button>
+        </div>
       </div>
     </el-card>
   </div>
 </template>
 
 <script setup>
-// 404页面组件
+import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const countdown = ref(5)
+let timer = null
+
+onMounted(() => {
+  timer = setInterval(() => {
+    countdown.value--
+    if (countdown.value <= 0) {
+      clearInterval(timer)
+      router.push('/')
+    }
+  }, 1000)
+})
+
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
+})
 </script>
 
 <style scoped>
@@ -53,8 +76,21 @@
 
 .not-found-message {
   color: #606266;
-  margin-bottom: 2rem;
+  margin-bottom: 0.5rem;
   line-height: 1.6;
+}
+
+.redirect-hint {
+  color: #909399;
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+}
+
+.not-found-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .not-found-link {

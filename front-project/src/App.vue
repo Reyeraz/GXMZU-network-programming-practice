@@ -40,12 +40,13 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import CouponPopup from './components/CouponPopup.vue'
+import { useCartStore } from './stores/cart'
 
-// 获取当前路由
 const route = useRoute()
+const cartStore = useCartStore()
 
-// 购物车商品数量
-const cartCount = ref(0)
+// 购物车商品数量（从 Pinia store 获取）
+const cartCount = computed(() => cartStore.totalQuantity)
 
 // 优惠券弹窗状态
 const couponPopupVisible = ref(false)
@@ -65,12 +66,6 @@ const activeIndex = computed(() => {
   if (path === '/cart') return '3'
   return '1'
 })
-
-// 从localStorage获取购物车数据
-const getCartCount = () => {
-  const cart = JSON.parse(localStorage.getItem('cart') || '[]')
-  cartCount.value = cart.reduce((total, item) => total + item.quantity, 0)
-}
 
 // 关闭优惠券弹窗
 const closeCouponPopup = () => {
@@ -98,9 +93,8 @@ const claimCoupon = () => {
 
 // 监听路由变化，更新购物车数量
 onMounted(() => {
-  getCartCount()
-  window.addEventListener('storage', getCartCount)
-  
+  cartStore.loadCart()
+
   // 检查是否需要显示优惠券弹窗
   const hasClosed = localStorage.getItem('couponPopupClosed') === 'true'
   const hasClaimed = localStorage.getItem('couponClaimed') === 'true'

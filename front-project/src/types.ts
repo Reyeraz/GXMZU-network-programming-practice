@@ -1,3 +1,11 @@
+// 促销信息类型
+export interface Promotion {
+  type: 'flash_sale' | 'new_arrival' | 'hot_sale'
+  tag: string
+  discountRate: number
+  endTime: string
+}
+
 // 产品类型定义
 export interface Product {
   id: number
@@ -8,6 +16,7 @@ export interface Product {
   category: string
   brand: string
   stock: number
+  promotion?: Promotion
 }
 
 // API 响应类型

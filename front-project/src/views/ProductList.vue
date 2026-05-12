@@ -106,6 +106,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { productAPI } from '../api/api.js'
 import ImageCarousel from '../components/ImageCarousel.vue'
+import { useCartStore } from '../stores/cart'
 
 // 路由实例
 const router = useRouter()
@@ -197,35 +198,16 @@ const handleCurrentChange = (page) => {
   fetchProducts()
 }
 
+const cartStore = useCartStore()
+
 // 添加到购物车
 const addToCart = (product) => {
-  // 从localStorage获取购物车数据
-  const cart = JSON.parse(localStorage.getItem('cart') || '[]')
-  
-  // 检查商品是否已在购物车中
-  const existingItemIndex = cart.findIndex(item => item.id === product.id)
-  
-  if (existingItemIndex !== -1) {
-    // 已存在，增加数量
-    cart[existingItemIndex].quantity += 1
-  } else {
-    // 不存在，添加新商品
-    cart.push({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.image,
-      quantity: 1
-    })
-  }
-  
-  // 保存到localStorage
-  localStorage.setItem('cart', JSON.stringify(cart))
-  
-  // 触发storage事件，更新App组件中的购物车数量
-  window.dispatchEvent(new Event('storage'))
-  
-  // 提示用户
+  cartStore.addToCart({
+    id: product.id,
+    name: product.name,
+    price: product.price,
+    image: product.image
+  })
   alert('商品已加入购物车')
 }
 

@@ -1,3 +1,6 @@
+// 生成促销截止时间（从现在起偏移指定天数）
+const endTimeFromNow = (days) => new Date(Date.now() + days * 86400000).toISOString()
+
 // 模拟商品数据
 export const products = [
   {
@@ -8,7 +11,13 @@ export const products = [
     image: 'https://picsum.photos/id/1/300/300',
     category: '手机',
     brand: 'Apple',
-    stock: 50
+    stock: 50,
+    promotion: {
+      type: 'flash_sale',
+      tag: '限时优惠',
+      discountRate: 0.85,
+      endTime: endTimeFromNow(3)
+    }
   },
   {
     id: 2,
@@ -28,7 +37,13 @@ export const products = [
     image: 'https://picsum.photos/id/3/300/300',
     category: '笔记本电脑',
     brand: 'Apple',
-    stock: 20
+    stock: 20,
+    promotion: {
+      type: 'new_arrival',
+      tag: '新品首发',
+      discountRate: 0.92,
+      endTime: endTimeFromNow(7)
+    }
   },
   {
     id: 4,
@@ -68,7 +83,13 @@ export const products = [
     image: 'https://picsum.photos/id/7/300/300',
     category: '耳机',
     brand: 'Apple',
-    stock: 40
+    stock: 40,
+    promotion: {
+      type: 'hot_sale',
+      tag: '热卖爆款',
+      discountRate: 0.88,
+      endTime: endTimeFromNow(2)
+    }
   },
   {
     id: 8,

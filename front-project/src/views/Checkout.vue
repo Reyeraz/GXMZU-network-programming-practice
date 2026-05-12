@@ -112,12 +112,13 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useCartStore } from '../stores/cart'
 
-// 获取路由实例
 const router = useRouter()
+const cartStore = useCartStore()
 
-// 购物车商品
-const cartItems = ref([])
+// 购物车商品（从 Pinia store 获取）
+const cartItems = computed(() => cartStore.items)
 
 // 收货信息
 const shippingInfo = ref({
@@ -131,16 +132,8 @@ const shippingInfo = ref({
 // 运费
 const shippingFee = ref(0)
 
-// 从localStorage获取购物车数据
-const loadCart = () => {
-  const cart = JSON.parse(localStorage.getItem('cart') || '[]')
-  cartItems.value = cart
-}
-
-// 计算商品总价
-const totalPrice = computed(() => {
-  return cartItems.value.reduce((total, item) => total + (item.price * item.quantity), 0)
-})
+// 计算商品总价（从 Pinia store 获取）
+const totalPrice = computed(() => cartStore.totalPrice)
 
 // 计算运费
 const calculateShippingFee = () => {
@@ -174,10 +167,9 @@ const placeOrder = () => {
   const orders = JSON.parse(localStorage.getItem('orders') || '[]')
   orders.push(order)
   localStorage.setItem('orders', JSON.stringify(orders))
-  
-  // 清空购物车
-  localStorage.removeItem('cart')
-  window.dispatchEvent(new Event('storage'))
+
+  // 使用 Pinia store 清空购物车
+  cartStore.clearCart()
   
   // 跳转到订单成功页
   router.push({
@@ -186,9 +178,9 @@ const placeOrder = () => {
   })
 }
 
-// 页面加载时获取购物车数据并计算运费
+// 页面加载时加载购物车数据并计算运费
 onMounted(() => {
-  loadCart()
+  cartStore.loadCart()
   calculateShippingFee()
 })
 </script>
