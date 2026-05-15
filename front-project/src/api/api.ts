@@ -1,5 +1,5 @@
 import request from './request.js'
-import type { Product, ApiResponse } from '../types'
+import type { Product, ApiResponse, RegisterRequest, LoginRequest, LoginResponse } from '../types'
 
 // 商品相关API
 export const productAPI = {
@@ -36,6 +36,17 @@ export const productAPI = {
   // 获取所有分类
   getCategories: (): Promise<ApiResponse<string[]>> => {
     return request.get('/categories')
+  }
+}
+
+// 用户相关API
+export const userAPI = {
+  register: (data: RegisterRequest): Promise<ApiResponse<string>> => {
+    return request.post('/user/register', data)
+  },
+
+  login: (data: LoginRequest): Promise<ApiResponse<LoginResponse>> => {
+    return request.post('/user/login', data)
   }
 }
 

@@ -1,0 +1,111 @@
+### ==========================================
+### JWT拦截器测试样例
+### 使用方式：ApiFox / IDEA HTTP Client
+### 按顺序执行: 先注册→登录获取token→后续测试
+### ==========================================
+
+### ------------------------------------------
+### 第一部分：未登录拦截测试（不携带Token）
+### ------------------------------------------
+
+### 1.1 未登录访问受保护接口 → 期望 401 "未登录，请先登录"
+GET http://localhost:8080/time-greeting
+
+### 1.2 未登录访问公开接口 /hello → 期望 200（排除路径，放行）
+GET http://localhost:8080/hello
+
+### 1.3 未登录访问公开接口 /api/products → 期望 200（排除路径，放行）
+GET http://localhost:8080/api/products
+
+### 1.4 未登录访问公开接口 /api/products/1 → 期望 200（排除路径，放行）
+GET http://localhost:8080/api/products/1
+
+### 1.5 未登录访问公开接口 /api/categories → 期望 200（排除路径，放行）
+GET http://localhost:8080/api/categories
+
+
+### ------------------------------------------
+### 第二部分：注册与登录（获取Token）
+### ------------------------------------------
+
+### 2.1 注册新用户
+POST http://localhost:8080/user/register
+Content-Type: application/json
+
+{
+  "username": "interceptor_test",
+  "password": "123456",
+  "phone": "13900139000"
+}
+
+### 2.2 登录获取Token（执行后复制返回的token值）
+POST http://localhost:8080/user/login
+Content-Type: application/json
+
+{
+  "username": "interceptor_test",
+  "password": "123456"
+}
+
+
+### ------------------------------------------
+### 第三部分：携带有效Token访问受保护接口
+### （请将下方 {{token}} 替换为2.2返回的实际token值）
+### ------------------------------------------
+
+### 3.1 携带有效Token访问 /time-greeting → 期望 200
+GET http://localhost:8080/time-greeting
+Authorization: Bearer {{token}}
+
+### 3.2 携带有效Token再次访问 → 期望 200（验证Token可复用）
+GET http://localhost:8080/time-greeting
+Authorization: Bearer {{token}}
+
+
+### ------------------------------------------
+### 第四部分：Token异常测试
+### ------------------------------------------
+
+### 4.1 携带无效Token → 期望 401 "登录已过期，请重新登录"
+GET http://localhost:8080/time-greeting
+Authorization: Bearer invalidToken123456
+
+### 4.2 携带被篡改的Token → 期望 401 "登录已过期，请重新登录"
+GET http://localhost:8080/time-greeting
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.tampered_payload.fake_signature
+
+### 4.3 空Authorization头 → 期望 401 "未登录，请先登录"
+GET http://localhost:8080/time-greeting
+Authorization:
+
+### 4.4 不带Bearer前缀的Token → 期望 200（支持两种格式）
+GET http://localhost:8080/time-greeting
+Authorization: {{token}}
+
+### 4.5 OPTIONS预检请求 → 期望 200（拦截器直接放行）
+OPTIONS http://localhost:8080/time-greeting
+Access-Control-Request-Method: GET
+Origin: http://localhost:5173
+
+
+### ------------------------------------------
+### 第五部分：登录失败场景
+### ------------------------------------------
+
+### 5.1 错误密码登录 → 期望返回错误
+POST http://localhost:8080/user/login
+Content-Type: application/json
+
+{
+  "username": "interceptor_test",
+  "password": "wrongpassword"
+}
+
+### 5.2 不存在用户登录 → 期望返回错误
+POST http://localhost:8080/user/login
+Content-Type: application/json
+
+{
+  "username": "nobody",
+  "password": "123456"
+}

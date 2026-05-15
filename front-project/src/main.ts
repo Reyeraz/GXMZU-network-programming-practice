@@ -10,6 +10,8 @@ import FirstDemo from './views/FirstDemo.vue'
 import UserCouponxue from './views/UserCouponxue.vue'
 import NotFound from './views/NotFound.vue'
 import OrderSuccess from './views/OrderSuccess.vue'
+import Login from './views/Login.vue'
+import Register from './views/Register.vue'
 
 // 导入Element-Plus
 import ElementPlus from 'element-plus'
@@ -26,6 +28,8 @@ const router = createRouter({
     { path: '/order/success', component: OrderSuccess },
     { path: '/first-demo', name: 'FirstDemo', component: FirstDemo },
     { path: '/coupons', component: UserCouponxue },
+    { path: '/login', component: Login },
+    { path: '/register', component: Register },
     { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound }
   ]
 })

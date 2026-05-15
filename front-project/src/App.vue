@@ -17,6 +17,18 @@
               <el-badge v-if="cartCount > 0" :value="cartCount" type="danger" class="cart-count" />
             </router-link>
           </el-menu-item>
+          <el-menu-item v-if="!userStore.isLoggedIn" index="4">
+            <router-link to="/login">登录</router-link>
+          </el-menu-item>
+          <el-menu-item v-if="!userStore.isLoggedIn" index="5">
+            <router-link to="/register">注册</router-link>
+          </el-menu-item>
+          <el-menu-item v-if="userStore.isLoggedIn" index="6">
+            <span class="user-welcome">欢迎，{{ userStore.username }}</span>
+          </el-menu-item>
+          <el-menu-item v-if="userStore.isLoggedIn" index="7">
+            <a href="#" @click.prevent="handleLogout">退出</a>
+          </el-menu-item>
         </el-menu>
       </div>
     </el-header>
@@ -41,9 +53,11 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import CouponPopup from './components/CouponPopup.vue'
 import { useCartStore } from './stores/cart'
+import { useUserStore } from './stores/user'
 
 const route = useRoute()
 const cartStore = useCartStore()
+const userStore = useUserStore()
 
 // 购物车商品数量（从 Pinia store 获取）
 const cartCount = computed(() => cartStore.totalQuantity)
@@ -64,8 +78,15 @@ const activeIndex = computed(() => {
   if (path === '/') return '1'
   if (path === '/coupons') return '2'
   if (path === '/cart') return '3'
+  if (path === '/login') return '4'
+  if (path === '/register') return '5'
   return '1'
 })
+
+const handleLogout = () => {
+  userStore.logout()
+  window.location.href = '/'
+}
 
 // 关闭优惠券弹窗
 const closeCouponPopup = () => {
@@ -94,6 +115,7 @@ const claimCoupon = () => {
 // 监听路由变化，更新购物车数量
 onMounted(() => {
   cartStore.loadCart()
+  userStore.loadAuth()
 
   // 检查是否需要显示优惠券弹窗
   const hasClosed = localStorage.getItem('couponPopupClosed') === 'true'
@@ -184,5 +206,11 @@ body {
 h1, h2, h3, h4, h5, h6 {
   margin-bottom: 1rem;
   color: #2c3e50;
+}
+
+/* 用户欢迎文字 */
+.user-welcome {
+  color: #4a90e2;
+  font-weight: bold;
 }
 </style>

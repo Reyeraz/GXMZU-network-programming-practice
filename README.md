@@ -41,6 +41,35 @@
 - **课堂练习**: 创建 HelloController → 浏览器/ApiFox 测试 → 理解 @RestController 和 @GetMapping
 - **拓展**: 实现完整商品管理 CRUD REST API（8 个接口）
 
+### 第14次课 - 用户注册与登录
+- **PDF**: `课件/第14次课 - 用户注册与登录.pdf` (25页)
+- **完成日期**: 2026-05-13
+- **产出**:
+  - `end-project/src/main/java/com/example/demo/model/User.java` — 用户实体（MyBatis-Plus）
+  - `end-project/src/main/java/com/example/demo/dto/UserRegisterRequest.java` — 注册请求DTO
+  - `end-project/src/main/java/com/example/demo/dto/UserLoginRequest.java` — 登录请求DTO
+  - `end-project/src/main/java/com/example/demo/mapper/UserMapper.java` — 用户Mapper
+  - `end-project/src/main/java/com/example/demo/service/UserService.java` — 用户服务接口
+  - `end-project/src/main/java/com/example/demo/service/impl/UserServiceImpl.java` — 用户服务实现（BCrypt加密、JWT生成）
+  - `end-project/src/main/java/com/example/demo/controller/UserController.java` — 用户控制器（注册/登录接口）
+  - `end-project/src/main/java/com/example/demo/config/SecurityConfig.java` — Spring Security配置（关闭默认安全、提供BCrypt Bean）
+  - `end-project/src/main/java/com/example/demo/config/GlobalExceptionHandler.java` — 全局异常处理器
+  - `end-project/src/main/java/com/example/demo/utils/JwtUtil.java` — JWT工具类
+  - `end-project/pom.xml` — 添加spring-boot-starter-security和jjwt依赖
+  - `front-project/src/views/Login.vue` — 登录页面
+  - `front-project/src/views/Register.vue` — 注册页面
+  - `front-project/src/stores/user.ts` — Pinia用户状态管理
+  - `front-project/src/api/api.ts` — 添加userAPI（register/login）
+  - `front-project/src/api/request.js` — 请求拦截器添加JWT Token
+  - `front-project/src/types.ts` — 添加用户相关类型定义
+  - `front-project/src/main.ts` — 添加登录/注册路由
+  - `front-project/src/App.vue` — 导航栏添加登录/注册/退出入口
+  - `课件/第14次课 - 用户注册与登录/额外文件/api-test-user.http` — API测试文件
+- **课堂练习**:
+  - 完成用户注册接口（BCrypt密码加密、用户名/手机号唯一性校验）
+  - 完成用户登录接口（密码验证、JWT Token生成与返回）
+  - 前端实现注册页面和登录页面，集成Pinia状态管理和JWT存储
+
 ### 第12次课 - Spring IoC
 - **PDF**: `课件/第12次课-Spring IoC.pdf` (5页)
 - **完成日期**: 2026-05-08
@@ -51,6 +80,35 @@
 - **课堂练习**: 
   - 练习1：删除 @Service → 观察错误，理解容器管理 Bean
   - 练习2：添加 timeGreeting() 方法和 /time-greeting 接口 → 理解单例 Bean 行为
+
+### 第13次课 - 开发第一个商品API接口-从MySQL数据库获取商品数据
+- **PDF**: `课件/第13次课-开发第一个商品API接口- 从MySQL数据库获取商品数据.pdf` (14页)
+- **完成日期**: 2026-05-15
+- **产出**:
+  - `end-project/src/main/java/com/example/demo/model/Product.java` — 商品实体类（MyBatis-Plus注解）
+  - `end-project/src/main/java/com/example/demo/model/ApiResponse.java` — 统一响应类
+  - `end-project/src/main/java/com/example/demo/mapper/ProductMapper.java` — 数据访问层
+  - `end-project/src/main/java/com/example/demo/service/ProductService.java` — 业务逻辑层
+  - `end-project/src/main/java/com/example/demo/controller/ProductController.java` — 控制层（完整CRUD）
+  - `end-project/src/main/resources/application.properties` — 数据库连接配置
+  - `end-project/pom.xml` — MyBatis-Plus、MySQL驱动、Lombok依赖
+- **课堂练习**:
+  - 任务1：完成"获取所有商品"API接口开发
+  - 任务2：实现"根据ID查询商品"API接口
+  - 任务3：实现添加商品、修改商品和删除商品API接口
+
+### 第15次课 - Spring MVC框架
+- **PDF**: `课件/第15次课-Spring MVC框架.pdf` (4页)
+- **完成日期**: 2026-05-15
+- **课堂练习**: 理解Spring MVC核心组件（DispatcherServlet、HandlerMapping、HandlerAdapter、HttpMessageConverter、ViewResolver）及其在电商项目中的工作流程
+
+### 第15次课 - Spring拦截器
+- **PDF**: `课件/第15次课-Spring拦截器.pdf` (10页)
+- **完成日期**: 2026-05-15
+- **产出**:
+  - `end-project/src/main/java/com/example/demo/interceptor/JwtInterceptor.java` — JWT拦截器（Token校验、userId提取）
+  - `end-project/src/main/java/com/example/demo/config/WebConfig.java` — 更新为实现WebMvcConfigurer，注册拦截器，配置拦截/放行路径
+- **课堂练习**: 完成JWT拦截器的实现并进行测试（未登录拦截、登录后携带Token访问、Token过期拦截）
 
 ## 项目结构
 
@@ -72,21 +130,45 @@
 │   │   └── api-test-backend.http
 │   └── 第12次课-Spring IoC/额外文件/
 │       └── api-test-ioc.http
+│   ├── 第13次课-开发第一个商品API接口- 从MySQL数据库获取商品数据.pdf
+│   ├── 第14次课 - 用户注册与登录.pdf
+│   ├── 第15次课-Spring MVC框架.pdf
+│   ├── 第15次课-Spring拦截器.pdf
+│   └── 第14次课 - 用户注册与登录/额外文件/
+│       └── api-test-user.http
 ├── front-project/                     # Vue.js 前端项目（第7-10次课）
-└── end-project/                       # Spring Boot 后端项目（第11-12次课）
+└── end-project/                       # Spring Boot 后端项目（第11-15次课）
     ├── pom.xml
     └── src/main/java/com/example/demo/
         ├── ShoppingEndApplication.java
-        ├── config/WebConfig.java
+        ├── config/
+        │   ├── WebConfig.java
+        │   └── SecurityConfig.java
         ├── controller/
         │   ├── HelloController.java
-        │   └── ProductController.java
+        │   ├── ProductController.java
+        │   └── UserController.java
         ├── service/
-        │   └── GreetingService.java
+        │   ├── GreetingService.java
+        │   ├── ProductService.java
+        │   ├── UserService.java
+        │   └── impl/
+        │       └── UserServiceImpl.java
+        ├── mapper/
+        │   ├── ProductMapper.java
+        │   └── UserMapper.java
         ├── model/
         │   ├── Product.java
+        │   ├── User.java
         │   ├── ApiResponse.java
         │   └── PageResult.java
+        ├── dto/
+        │   ├── UserRegisterRequest.java
+        │   └── UserLoginRequest.java
+        ├── interceptor/
+        │   └── JwtInterceptor.java
+        ├── utils/
+        │   └── JwtUtil.java
         └── pojo/User.java
 ```
 
