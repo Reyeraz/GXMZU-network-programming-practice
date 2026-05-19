@@ -35,7 +35,7 @@ Content-Type: application/json
 {
   "username": "interceptor_test",
   "password": "123456",
-  "phone": "13900139000"
+  "phone": "13900139001"
 }
 
 ### 2.2 登录获取Token（执行后复制返回的token值）
@@ -55,11 +55,11 @@ Content-Type: application/json
 
 ### 3.1 携带有效Token访问 /time-greeting → 期望 200
 GET http://localhost:8080/time-greeting
-Authorization: Bearer {{token}}
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJpbnRlcmNlcHRvcl90ZXN0IiwidXNlcklkIjo1LCJpYXQiOjE3Nzg4MzcwMDYsImV4cCI6MTc3OTQ0MTgwNn0.nXwcnf7B35CQrmnA-vzIKXW79AcQW9AWrnOZBykpGGs
 
 ### 3.2 携带有效Token再次访问 → 期望 200（验证Token可复用）
 GET http://localhost:8080/time-greeting
-Authorization: Bearer {{token}}
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJpbnRlcmNlcHRvcl90ZXN0IiwidXNlcklkIjo1LCJpYXQiOjE3Nzg4MzcwMDYsImV4cCI6MTc3OTQ0MTgwNn0.nXwcnf7B35CQrmnA-vzIKXW79AcQW9AWrnOZBykpGGs
 
 
 ### ------------------------------------------

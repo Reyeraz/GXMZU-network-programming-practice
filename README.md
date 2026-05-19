@@ -110,6 +110,26 @@
   - `end-project/src/main/java/com/example/demo/config/WebConfig.java` — 更新为实现WebMvcConfigurer，注册拦截器，配置拦截/放行路径
 - **课堂练习**: 完成JWT拦截器的实现并进行测试（未登录拦截、登录后携带Token访问、Token过期拦截）
 
+### 第16次课 - 购物车接口开发
+- **PDF**: `课件/第16次课-购物车接口开发.pdf` (28页) + `课件/购物车管理接口文档.pdf` (7页)
+- **完成日期**: 2026-05-19
+- **产出**:
+  - `end-project/src/main/java/com/example/demo/model/Cart.java` — 购物车实体类（MyBatis-Plus）
+  - `end-project/src/main/java/com/example/demo/model/Product.java` — 添加isAvailable字段
+  - `end-project/src/main/java/com/example/demo/vo/CartItemVO.java` — 购物车视图对象（Cart+Product）
+  - `end-project/src/main/java/com/example/demo/dto/AddToCartRequest.java` — 添加购物车请求DTO
+  - `end-project/src/main/java/com/example/demo/dto/UpdateCartQuantityRequest.java` — 更新数量请求DTO
+  - `end-project/src/main/java/com/example/demo/mapper/CartMapper.java` — 购物车Mapper
+  - `end-project/src/main/java/com/example/demo/service/CartService.java` — 购物车服务接口
+  - `end-project/src/main/java/com/example/demo/service/impl/CartServiceImpl.java` — 购物车服务实现
+  - `end-project/src/main/java/com/example/demo/controller/CartController.java` — 购物车控制器
+  - `课件/第16次课-购物车接口开发/额外文件/api-test-cart.http` — API测试文件
+  - `课件/第16次课-购物车接口开发/额外文件/cart_table.sql` — 购物车表结构SQL
+- **课堂练习**:
+  - 接口1：GET /cart — 查询当前用户购物车列表（关联product表实时查询）
+  - 接口2：POST /cart — 添加商品到购物车（校验商品上架、库存、重复累加）
+  - 接口3：PUT /cart/{cart_id} — 修改购物车商品数量（越权校验、库存校验）
+
 ## 项目结构
 
 ```
@@ -145,26 +165,35 @@
         │   ├── WebConfig.java
         │   └── SecurityConfig.java
         ├── controller/
+        │   ├── CartController.java
         │   ├── HelloController.java
         │   ├── ProductController.java
         │   └── UserController.java
         ├── service/
+        │   ├── CartService.java
         │   ├── GreetingService.java
         │   ├── ProductService.java
         │   ├── UserService.java
         │   └── impl/
+        │       ├── CartServiceImpl.java
         │       └── UserServiceImpl.java
         ├── mapper/
+        │   ├── CartMapper.java
         │   ├── ProductMapper.java
         │   └── UserMapper.java
         ├── model/
+        │   ├── Cart.java
         │   ├── Product.java
         │   ├── User.java
         │   ├── ApiResponse.java
         │   └── PageResult.java
         ├── dto/
+        │   ├── AddToCartRequest.java
+        │   ├── UpdateCartQuantityRequest.java
         │   ├── UserRegisterRequest.java
         │   └── UserLoginRequest.java
+        ├── vo/
+        │   └── CartItemVO.java
         ├── interceptor/
         │   └── JwtInterceptor.java
         ├── utils/
