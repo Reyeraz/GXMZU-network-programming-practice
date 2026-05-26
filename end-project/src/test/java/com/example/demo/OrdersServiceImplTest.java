@@ -7,6 +7,7 @@ import com.example.demo.model.Orders;
 import com.example.demo.service.CartService;
 import com.example.demo.service.OrdersService;
 import com.example.demo.vo.OrderCreateVO;
+import com.example.demo.vo.OrderDetailVO;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -207,5 +208,51 @@ class OrdersServiceImplTest {
 
         assertEquals(unitPrice * 2, order.getTotalAmount().doubleValue(), 0.01);
         assertEquals(unitPrice * 2, order.getPayAmount().doubleValue(), 0.01);
+    }
+
+    // ==================== GET /orders/{order_id} ====================
+
+    @Test
+    @DisplayName("09_getOrderDetail — 正常查询订单详情")
+    void t09_getOrderDetail_shouldReturnFullDetail() {
+        cartService.addToCart(TEST_USER, PRODUCT_IPHONE, 2);
+        cartService.addToCart(TEST_USER, PRODUCT_HUAWEI, 1);
+        OrderCreateVO created = ordersService.createOrder(TEST_USER, validRequest());
+
+        OrderDetailVO detail = ordersService.getOrderDetail(TEST_USER, created.getOrderId());
+
+        assertNotNull(detail);
+        assertEquals(created.getOrderId(), detail.getOrderId());
+        assertEquals(TEST_USER, detail.getUserId());
+        assertEquals(0, detail.getStatus());
+        assertNotNull(detail.getConsignee());
+        assertNotNull(detail.getItems());
+        assertEquals(2, detail.getItems().size());
+        // 验证订单项包含商品快照信息
+        for (var item : detail.getItems()) {
+            assertNotNull(item.getProductName());
+            assertTrue(item.getPrice().doubleValue() > 0);
+            assertTrue(item.getQuantity() > 0);
+            assertTrue(item.getAmount().doubleValue() > 0);
+        }
+    }
+
+    @Test
+    @DisplayName("10_getOrderDetail — 订单不存在抛异常")
+    void t10_getOrderDetail_shouldThrowWhenNotFound() {
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                ordersService.getOrderDetail(TEST_USER, 99999));
+        assertEquals("订单不存在", ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("11_getOrderDetail — 越权查看他人订单抛异常")
+    void t11_getOrderDetail_shouldThrowWhenNotOwner() {
+        cartService.addToCart(TEST_USER, PRODUCT_IPHONE, 1);
+        OrderCreateVO created = ordersService.createOrder(TEST_USER, validRequest());
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                ordersService.getOrderDetail(999, created.getOrderId()));
+        assertEquals("无权限查看该订单", ex.getMessage());
     }
 }

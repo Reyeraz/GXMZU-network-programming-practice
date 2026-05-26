@@ -13,6 +13,8 @@ import com.example.demo.model.Orders;
 import com.example.demo.model.Product;
 import com.example.demo.service.OrdersService;
 import com.example.demo.vo.OrderCreateVO;
+import com.example.demo.vo.OrderDetailVO;
+import com.example.demo.vo.OrderItemVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -99,5 +101,47 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         result.setPayAmount(order.getPayAmount());
         result.setOrderDate(order.getOrderDate());
         return result;
+    }
+
+    @Override
+    public OrderDetailVO getOrderDetail(Integer userId, Integer orderId) {
+        Orders orders = baseMapper.selectById(orderId);
+        if (orders == null) {
+            throw new RuntimeException("订单不存在");
+        }
+        if (!orders.getUserId().equals(userId)) {
+            throw new RuntimeException("无权限查看该订单");
+        }
+
+        LambdaQueryWrapper<OrderItem> orderItemWrapper = new LambdaQueryWrapper<>();
+        orderItemWrapper.eq(OrderItem::getOrderId, orderId);
+        List<OrderItem> orderItemList = orderItemMapper.selectList(orderItemWrapper);
+
+        List<OrderItemVO> orderItemVOList = new ArrayList<>();
+        for (OrderItem orderItem : orderItemList) {
+            OrderItemVO orderItemVO = new OrderItemVO();
+            orderItemVO.setOrderItemId(orderItem.getOrderItemId());
+            orderItemVO.setProductId(orderItem.getProductId());
+            orderItemVO.setProductName(orderItem.getProductName());
+            orderItemVO.setPrice(orderItem.getPrice());
+            orderItemVO.setQuantity(orderItem.getQuantity());
+            orderItemVO.setDiscount(orderItem.getDiscount());
+            orderItemVO.setAmount(orderItem.getAmount());
+            orderItemVOList.add(orderItemVO);
+        }
+
+        OrderDetailVO orderDetailVO = new OrderDetailVO();
+        orderDetailVO.setOrderId(orders.getOrderId());
+        orderDetailVO.setUserId(orders.getUserId());
+        orderDetailVO.setOrderDate(orders.getOrderDate());
+        orderDetailVO.setTotalAmount(orders.getTotalAmount());
+        orderDetailVO.setPayAmount(orders.getPayAmount());
+        orderDetailVO.setStatus(orders.getStatus());
+        orderDetailVO.setConsignee(orders.getConsignee());
+        orderDetailVO.setTelephone(orders.getTelephone());
+        orderDetailVO.setCity(orders.getCity());
+        orderDetailVO.setAddress(orders.getAddress());
+        orderDetailVO.setItems(orderItemVOList);
+        return orderDetailVO;
     }
 }
