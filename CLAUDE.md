@@ -101,9 +101,9 @@ cd front-project && npm run build   # 构建
 
 ```bash
 # 前端 → Gitee
-git subtree push --prefix=front-project git@gitee.com:xiazzzzz/front-project.git main
+git subtree push --prefix=front-project gitee-front master
 # 后端 → Gitee
-git subtree push --prefix=end-project git@gitee.com:xiazzzzz/end-project.git main
+git subtree push --prefix=end-project gitee-end master
 ```
 
 ## 作业管理
