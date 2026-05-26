@@ -1,6 +1,7 @@
 package com.example.demo.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.demo.mapper.CartMapper;
 import com.example.demo.mapper.ProductMapper;
@@ -119,5 +120,65 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements Ca
 
         cart.setQuantity(newQuantity);
         baseMapper.updateById(cart);
+    }
+
+    @Override
+    public void updateSelected(Integer userId, Integer cartId, Integer selected) {
+        Cart cart = baseMapper.selectById(cartId);
+        if (cart == null) {
+            throw new RuntimeException("购物车记录不存在");
+        }
+        if (!cart.getUserId().equals(userId)) {
+            throw new RuntimeException("无权限操作该购物车项");
+        }
+        cart.setSelected(selected);
+        baseMapper.updateById(cart);
+    }
+
+    @Override
+    public void batchUpdateSelected(Integer userId, Integer selected) {
+        LambdaUpdateWrapper<Cart> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(Cart::getUserId, userId)
+                .set(Cart::getSelected, selected);
+        baseMapper.update(updateWrapper);
+    }
+
+    @Override
+    public void deleteCartItem(Integer userId, Integer cartId) {
+        Cart cart = baseMapper.selectById(cartId);
+        if (cart == null) {
+            throw new RuntimeException("购物车记录不存在");
+        }
+        if (!cart.getUserId().equals(userId)) {
+            throw new RuntimeException("无权限操作该购物车项");
+        }
+        baseMapper.deleteById(cartId);
+    }
+
+    @Override
+    public void deleteSelected(Integer userId) {
+        LambdaQueryWrapper<Cart> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Cart::getUserId, userId)
+                .eq(Cart::getSelected, 1);
+        baseMapper.delete(queryWrapper);
+    }
+
+    @Override
+    public int getCartCount(Integer userId) {
+        LambdaQueryWrapper<Cart> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Cart::getUserId, userId)
+                .select(Cart::getQuantity);
+        List<Cart> cartList = baseMapper.selectList(queryWrapper);
+        return cartList.stream().mapToInt(Cart::getQuantity).sum();
+    }
+
+    @Override
+    public int getSelectedCount(Integer userId) {
+        LambdaQueryWrapper<Cart> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Cart::getUserId, userId)
+                .eq(Cart::getSelected, 1)
+                .select(Cart::getQuantity);
+        List<Cart> cartList = baseMapper.selectList(queryWrapper);
+        return cartList.stream().mapToInt(Cart::getQuantity).sum();
     }
 }

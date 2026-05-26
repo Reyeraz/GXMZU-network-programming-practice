@@ -129,41 +129,74 @@
   - 接口1：GET /cart — 查询当前用户购物车列表（关联product表实时查询）
   - 接口2：POST /cart — 添加商品到购物车（校验商品上架、库存、重复累加）
   - 接口3：PUT /cart/{cart_id} — 修改购物车商品数量（越权校验、库存校验）
+- **备注**: 剩余6个接口在第17次课完成
+
+### 第17次课 - CartController代码审核与优化
+- **PDF**: `课件/第17次课-CartController代码审核与优化.pdf` + `课件/购物车管理接口文档 (1).pdf`
+- **完成日期**: 2026-05-22
+- **产出**:
+  - **代码优化**: 删除CartController中3个方法冗余的`userId`判空（JWT拦截器已确保非空）
+  - **新增接口**（6个）:
+    1. `PUT /cart/{cart_id}/selected` — 修改单个商品勾选状态（越权校验）
+    2. `PUT /cart/selected/batch` — 全选/全不选（批量更新）
+    3. `DELETE /cart/{cart_id}` — 删除购物车单个商品（越权校验）
+    4. `DELETE /cart/selected` — 批量删除已勾选商品
+    5. `GET /cart/count` — 获取购物车总件数（SUM(quantity)）
+    6. `GET /cart/selected/count` — 获取已勾选商品总件数
+  - `end-project/src/main/java/com/example/demo/dto/UpdateCartSelectedRequest.java` — 勾选状态请求DTO
+  - `end-project/src/main/java/com/example/demo/vo/TotalCountVO.java` — 总件数VO
+  - `end-project/src/main/java/com/example/demo/controller/CartController.java` — 新增6个接口、优化代码
+  - `end-project/src/main/java/com/example/demo/service/CartService.java` — 新增6个方法声明
+  - `end-project/src/main/java/com/example/demo/service/impl/CartServiceImpl.java` — 新增6个方法实现
+  - `课件/第17次课-CartController代码审核与优化/额外文件/api-test-cart-new.http` — API测试文件
+- **课堂练习**:
+  - CartController代码审核：发现拦截器已校验userId，删除重复判空
+  - 实现购物车完整9个REST API接口（GET/POST/PUT/DELETE）
 
 ## 项目结构
 
 ```
 网络编程实践/
-├── README.md                          # 本文件
-├── 课件/                              # 课件 PDF 目录
+├── README.md
+├── 作业完成记录.md
+├── 课件/
 │   ├── 第11次课-Maven项目管理工具.pdf
 │   ├── 第11次课-服务器后端项目搭建.pdf
 │   ├── 第11次课-API接口文档.pdf
 │   ├── 第12次课-搭建第一个Web API接口.pdf
 │   ├── 第12次课-Spring IoC.pdf
+│   ├── 第13次课-开发第一个商品API接口.pdf
+│   ├── 第14次课-用户注册与登录.pdf
+│   ├── 第15次课-Spring MVC框架.pdf
+│   ├── 第15次课-Spring拦截器.pdf
+│   ├── 第16次课-购物车接口开发.pdf
+│   ├── 购物车管理接口文档.pdf
+│   ├── 第17次课-CartController代码审核与优化.pdf
+│   ├── 第17次课-购物车接口开发-续.pdf
+│   ├── 购物车管理接口文档 (1).pdf
 │   ├── 第11次课-API接口文档/额外文件/
 │   │   ├── product_table.sql
 │   │   └── API接口文档-商品管理.md
-│   ├── 第11次课-Maven项目管理工具/额外文件/    # (空目录)
-│   ├── 第11次课-服务器后端项目搭建/额外文件/   # (空目录)
 │   ├── 第12次课-搭建第一个Web API接口/额外文件/
 │   │   └── api-test-backend.http
-│   └── 第12次课-Spring IoC/额外文件/
-│       └── api-test-ioc.http
-│   ├── 第13次课-开发第一个商品API接口- 从MySQL数据库获取商品数据.pdf
-│   ├── 第14次课 - 用户注册与登录.pdf
-│   ├── 第15次课-Spring MVC框架.pdf
-│   ├── 第15次课-Spring拦截器.pdf
-│   └── 第14次课 - 用户注册与登录/额外文件/
-│       └── api-test-user.http
-├── front-project/                     # Vue.js 前端项目（第7-10次课）
-└── end-project/                       # Spring Boot 后端项目（第11-15次课）
+│   ├── 第12次课-Spring IoC/额外文件/
+│   │   └── api-test-ioc.http
+│   ├── 第14次课-用户注册与登录/额外文件/
+│   │   └── api-test-user.http
+│   ├── 第16次课-购物车接口开发/额外文件/
+│   │   ├── api-test-cart.http
+│   │   └── cart_table.sql
+│   └── 第17次课-CartController代码审核与优化/额外文件/
+│       └── api-test-cart-new.http
+├── front-project/                     # Vue.js 前端项目
+└── end-project/                       # Spring Boot 后端项目
     ├── pom.xml
     └── src/main/java/com/example/demo/
         ├── ShoppingEndApplication.java
         ├── config/
         │   ├── WebConfig.java
-        │   └── SecurityConfig.java
+        │   ├── SecurityConfig.java
+        │   └── GlobalExceptionHandler.java
         ├── controller/
         │   ├── CartController.java
         │   ├── HelloController.java
@@ -190,15 +223,18 @@
         ├── dto/
         │   ├── AddToCartRequest.java
         │   ├── UpdateCartQuantityRequest.java
+        │   ├── UpdateCartSelectedRequest.java
         │   ├── UserRegisterRequest.java
         │   └── UserLoginRequest.java
         ├── vo/
-        │   └── CartItemVO.java
+        │   ├── CartItemVO.java
+        │   └── TotalCountVO.java
         ├── interceptor/
         │   └── JwtInterceptor.java
         ├── utils/
         │   └── JwtUtil.java
-        └── pojo/User.java
+        └── pojo/
+            └── User.java
 ```
 
 ## 环境信息

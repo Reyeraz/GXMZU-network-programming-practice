@@ -1,0 +1,111 @@
+### ==================== 订单模块 — 创建订单 ====================
+
+### 变量：登录获取token后替换
+@token = eyJhbGciOiJIUzI1NiJ9...
+
+### 1. 正常创建订单
+POST http://localhost:8080/orders/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "consignee": "张三",
+  "telephone": "13800138000",
+  "city": "北京",
+  "address": "朝阳路100号"
+}
+
+### 2. 收货人为空（参数校验失败）
+POST http://localhost:8080/orders/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "consignee": "",
+  "telephone": "13800138000",
+  "city": "北京",
+  "address": "朝阳路100号"
+}
+
+### 3. 电话格式不正确
+POST http://localhost:8080/orders/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "consignee": "张三",
+  "telephone": "12345",
+  "city": "北京",
+  "address": "朝阳路100号"
+}
+
+### 4. 城市为空
+POST http://localhost:8080/orders/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "consignee": "张三",
+  "telephone": "13800138000",
+  "city": "",
+  "address": "朝阳路100号"
+}
+
+### 5. 详细地址为空
+POST http://localhost:8080/orders/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "consignee": "张三",
+  "telephone": "13800138000",
+  "city": "北京",
+  "address": ""
+}
+
+### 6. 购物车无选中商品（业务异常）
+POST http://localhost:8080/orders/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "consignee": "张三",
+  "telephone": "13800138000",
+  "city": "北京",
+  "address": "朝阳路100号"
+}
+
+### 7. 未登录（Token过期或无效）
+POST http://localhost:8080/orders/create
+Content-Type: application/json
+
+{
+  "consignee": "张三",
+  "telephone": "13800138000",
+  "city": "北京",
+  "address": "朝阳路100号"
+}
+
+### 8. Token格式错误
+POST http://localhost:8080/orders/create
+Content-Type: application/json
+Authorization: Bearer invalid-token
+
+{
+  "consignee": "张三",
+  "telephone": "13800138000",
+  "city": "北京",
+  "address": "朝阳路100号"
+}
+
+### 9. 边界值 — 电话号码11位合法
+POST http://localhost:8080/orders/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "consignee": "李四",
+  "telephone": "13912345678",
+  "city": "上海",
+  "address": "南京路200号"
+}
