@@ -3,6 +3,9 @@ package com.example.demo.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.demo.dto.OrderCreateRequest;
+import com.example.demo.exception.BadRequestException;
+import com.example.demo.exception.ForbiddenException;
+import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.mapper.CartMapper;
 import com.example.demo.mapper.OrderItemMapper;
 import com.example.demo.mapper.OrdersMapper;
@@ -41,7 +44,7 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         List<Cart> selectedCartList = cartMapper.selectList(cartWrapper);
 
         if (selectedCartList == null || selectedCartList.isEmpty()) {
-            throw new RuntimeException("购物车中没有已选中的商品");
+            throw new BadRequestException("购物车中没有已选中的商品");
         }
 
         List<OrderItem> orderItemList = new ArrayList<>();
@@ -50,12 +53,12 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         for (Cart cart : selectedCartList) {
             Product product = productMapper.selectById(cart.getProductId());
             if (product == null || product.getIsAvailable() == null || product.getIsAvailable() != 1) {
-                throw new RuntimeException("商品[" + (product != null ? product.getName() : "未知") + "]已下架或不存在");
+                throw new BadRequestException("商品[" + (product != null ? product.getName() : "未知") + "]已下架或不存在");
             }
 
             int affectedRows = productMapper.decreaseStock(product.getId(), cart.getQuantity());
             if (affectedRows == 0) {
-                throw new RuntimeException("商品[" + product.getName() + "]库存不足");
+                throw new BadRequestException("商品[" + product.getName() + "]库存不足");
             }
 
             BigDecimal productPrice = BigDecimal.valueOf(product.getPrice());
@@ -107,10 +110,10 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
     public OrderDetailVO getOrderDetail(Integer userId, Integer orderId) {
         Orders orders = baseMapper.selectById(orderId);
         if (orders == null) {
-            throw new RuntimeException("订单不存在");
+            throw new ResourceNotFoundException("订单不存在");
         }
         if (!orders.getUserId().equals(userId)) {
-            throw new RuntimeException("无权限查看该订单");
+            throw new ForbiddenException("无权限查看该订单");
         }
 
         LambdaQueryWrapper<OrderItem> orderItemWrapper = new LambdaQueryWrapper<>();

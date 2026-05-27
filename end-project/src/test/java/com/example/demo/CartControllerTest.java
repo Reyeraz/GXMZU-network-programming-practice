@@ -137,7 +137,7 @@ class CartControllerTest {
             mockMvc.perform(post("/cart")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false));
         }
 
@@ -151,7 +151,7 @@ class CartControllerTest {
             mockMvc.perform(post("/cart")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false));
         }
 
@@ -165,7 +165,7 @@ class CartControllerTest {
             mockMvc.perform(post("/cart")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false));
         }
 
@@ -217,7 +217,7 @@ class CartControllerTest {
             mockMvc.perform(put("/cart/1")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false));
         }
 
@@ -230,7 +230,7 @@ class CartControllerTest {
             mockMvc.perform(put("/cart/1")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false));
         }
 
@@ -295,7 +295,7 @@ class CartControllerTest {
             mockMvc.perform(put("/cart/1/selected")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false));
         }
 
@@ -308,7 +308,7 @@ class CartControllerTest {
             mockMvc.perform(put("/cart/1/selected")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false));
         }
 
@@ -321,7 +321,7 @@ class CartControllerTest {
             mockMvc.perform(put("/cart/1/selected")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false));
         }
     }

@@ -5,6 +5,9 @@ import com.example.demo.config.SecurityConfig;
 import com.example.demo.config.WebConfig;
 import com.example.demo.controller.OrderController;
 import com.example.demo.dto.OrderCreateRequest;
+import com.example.demo.exception.BadRequestException;
+import com.example.demo.exception.ForbiddenException;
+import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.interceptor.JwtInterceptor;
 import com.example.demo.service.OrdersService;
 import com.example.demo.vo.OrderCreateVO;
@@ -111,7 +114,7 @@ class OrderControllerTest {
             mockMvc.perform(post("/orders/create")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(req)))
-                    .andExpect(status().isOk())
+                    .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.success").value(false));
         }
 
@@ -124,7 +127,7 @@ class OrderControllerTest {
             mockMvc.perform(post("/orders/create")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(req)))
-                    .andExpect(status().isOk())
+                    .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.success").value(false));
         }
 
@@ -137,7 +140,7 @@ class OrderControllerTest {
             mockMvc.perform(post("/orders/create")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(req)))
-                    .andExpect(status().isOk())
+                    .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.success").value(false));
         }
 
@@ -150,7 +153,7 @@ class OrderControllerTest {
             mockMvc.perform(post("/orders/create")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(req)))
-                    .andExpect(status().isOk())
+                    .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.success").value(false));
         }
 
@@ -163,7 +166,7 @@ class OrderControllerTest {
             mockMvc.perform(post("/orders/create")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(req)))
-                    .andExpect(status().isOk())
+                    .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.success").value(false));
         }
 
@@ -171,12 +174,12 @@ class OrderControllerTest {
         @DisplayName("业务异常 — 购物车无选中商品")
         void shouldReturnFailWhenCartEmpty() throws Exception {
             when(ordersService.createOrder(eq(TEST_USER), any(OrderCreateRequest.class)))
-                    .thenThrow(new RuntimeException("购物车中没有已选中的商品"));
+                    .thenThrow(new BadRequestException("购物车中没有已选中的商品"));
 
             mockMvc.perform(post("/orders/create")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest())))
-                    .andExpect(status().isOk())
+                    .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.success").value(false))
                     .andExpect(jsonPath("$.message").value("购物车中没有已选中的商品"));
         }
@@ -185,12 +188,12 @@ class OrderControllerTest {
         @DisplayName("业务异常 — 库存不足")
         void shouldReturnFailWhenStockInsufficient() throws Exception {
             when(ordersService.createOrder(eq(TEST_USER), any(OrderCreateRequest.class)))
-                    .thenThrow(new RuntimeException("商品[iPhone 15]库存不足"));
+                    .thenThrow(new BadRequestException("商品[iPhone 15]库存不足"));
 
             mockMvc.perform(post("/orders/create")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest())))
-                    .andExpect(status().isOk())
+                    .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.success").value(false))
                     .andExpect(jsonPath("$.message").value("商品[iPhone 15]库存不足"));
         }
@@ -199,12 +202,12 @@ class OrderControllerTest {
         @DisplayName("业务异常 — 商品已下架")
         void shouldReturnFailWhenProductUnavailable() throws Exception {
             when(ordersService.createOrder(eq(TEST_USER), any(OrderCreateRequest.class)))
-                    .thenThrow(new RuntimeException("商品[iPhone 15]已下架或不存在"));
+                    .thenThrow(new BadRequestException("商品[iPhone 15]已下架或不存在"));
 
             mockMvc.perform(post("/orders/create")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest())))
-                    .andExpect(status().isOk())
+                    .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.success").value(false))
                     .andExpect(jsonPath("$.message").value("商品[iPhone 15]已下架或不存在"));
         }
@@ -264,10 +267,10 @@ class OrderControllerTest {
         @DisplayName("业务异常 — 订单不存在")
         void shouldReturnFailWhenOrderNotFound() throws Exception {
             when(ordersService.getOrderDetail(TEST_USER, 999))
-                    .thenThrow(new RuntimeException("订单不存在"));
+                    .thenThrow(new ResourceNotFoundException("订单不存在"));
 
             mockMvc.perform(get("/orders/999"))
-                    .andExpect(status().isOk())
+                    .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.success").value(false))
                     .andExpect(jsonPath("$.message").value("订单不存在"));
         }
@@ -276,10 +279,10 @@ class OrderControllerTest {
         @DisplayName("业务异常 — 越权查看他人订单")
         void shouldReturnFailWhenNotOwner() throws Exception {
             when(ordersService.getOrderDetail(TEST_USER, 5))
-                    .thenThrow(new RuntimeException("无权限查看该订单"));
+                    .thenThrow(new ForbiddenException("无权限查看该订单"));
 
             mockMvc.perform(get("/orders/5"))
-                    .andExpect(status().isOk())
+                    .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.success").value(false))
                     .andExpect(jsonPath("$.message").value("无权限查看该订单"));
         }

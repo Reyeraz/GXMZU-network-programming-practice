@@ -1,6 +1,9 @@
 package com.example.demo;
 
 import com.example.demo.dto.OrderCreateRequest;
+import com.example.demo.exception.BadRequestException;
+import com.example.demo.exception.ForbiddenException;
+import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.mapper.CartMapper;
 import com.example.demo.model.Cart;
 import com.example.demo.model.Orders;
@@ -88,7 +91,7 @@ class OrdersServiceImplTest {
     @DisplayName("01_createOrder — 购物车为空抛异常")
     void t01_createOrder_shouldThrowWhenCartEmpty() {
         OrderCreateRequest req = validRequest();
-        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+        BadRequestException ex = assertThrows(BadRequestException.class, () ->
                 ordersService.createOrder(TEST_USER, req));
         assertTrue(ex.getMessage().contains("购物车中没有已选中的商品"));
     }
@@ -154,7 +157,7 @@ class OrdersServiceImplTest {
         cart.setSelected(1);
         cartMapper.insert(cart);
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+        BadRequestException ex = assertThrows(BadRequestException.class, () ->
                 ordersService.createOrder(TEST_USER, validRequest()));
         assertTrue(ex.getMessage().contains("库存不足"));
 
@@ -240,7 +243,7 @@ class OrdersServiceImplTest {
     @Test
     @DisplayName("10_getOrderDetail — 订单不存在抛异常")
     void t10_getOrderDetail_shouldThrowWhenNotFound() {
-        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class, () ->
                 ordersService.getOrderDetail(TEST_USER, 99999));
         assertEquals("订单不存在", ex.getMessage());
     }
@@ -251,7 +254,7 @@ class OrdersServiceImplTest {
         cartService.addToCart(TEST_USER, PRODUCT_IPHONE, 1);
         OrderCreateVO created = ordersService.createOrder(TEST_USER, validRequest());
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+        ForbiddenException ex = assertThrows(ForbiddenException.class, () ->
                 ordersService.getOrderDetail(999, created.getOrderId()));
         assertEquals("无权限查看该订单", ex.getMessage());
     }

@@ -1,0 +1,907 @@
+### ============================================================
+### 第19次课 — Spring统一异常处理 + 未覆盖接口测试
+### 使用前：
+###   1. 先执行"用户注册"获取user1_token和user2_token
+###   2. 替换下方 token 变量值为实际JWT
+### ============================================================
+
+@base = http://localhost:8080
+@token = your-jwt-token-here
+@token2 = another-user-jwt-token-here
+
+### ############################################################
+### 一、Token 获取（先执行）
+### ############################################################
+
+### 注册用户1（测试主体）
+POST {{base}}/user/register
+Content-Type: application/json
+
+{
+  "username": "exception_test",
+  "password": "123456",
+  "phone": "13800000001",
+  "email": "test1@example.com"
+}
+
+### 登录用户1 → 获取 token，替换上方 @token
+POST {{base}}/user/login
+Content-Type: application/json
+
+{
+  "username": "exception_test",
+  "password": "123456"
+}
+
+### 注册用户2（用于越权测试）
+POST {{base}}/user/register
+Content-Type: application/json
+
+{
+  "username": "exception_test2",
+  "password": "123456",
+  "phone": "13800000002",
+  "email": "test2@example.com"
+}
+
+### 登录用户2 → 获取 token2，替换上方 @token2
+POST {{base}}/user/login
+Content-Type: application/json
+
+{
+  "username": "exception_test2",
+  "password": "123456"
+}
+
+### ############################################################
+### 二、异常处理 — HTTP 状态码验证（第19次课重点）
+### ############################################################
+
+### ==================== 400 BadRequestException ====================
+
+### [400] 购物车为空时创建订单
+POST {{base}}/orders/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "consignee": "张三",
+  "telephone": "13800138000",
+  "city": "北京",
+  "address": "朝阳路100号"
+}
+
+### ==================== 400 参数校验失败 ====================
+
+### [400] 创建订单 — 收货人为空
+POST {{base}}/orders/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "consignee": "",
+  "telephone": "13800138000",
+  "city": "北京",
+  "address": "朝阳路100号"
+}
+
+### [400] 创建订单 — 电话格式错误
+POST {{base}}/orders/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "consignee": "张三",
+  "telephone": "abc",
+  "city": "北京",
+  "address": "朝阳路100号"
+}
+
+### [400] 添加购物车 — productId为null
+POST {{base}}/cart
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "productId": null,
+  "quantity": 1
+}
+
+### [400] 添加购物车 — quantity为0
+POST {{base}}/cart
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "productId": 1,
+  "quantity": 0
+}
+
+### [400] 添加购物车 — quantity为负数
+POST {{base}}/cart
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "productId": 1,
+  "quantity": -5
+}
+
+### [400] 修改购物车 — 缺少newQuantity
+PUT {{base}}/cart/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+}
+
+### [400] 修改勾选状态 — selected超出范围
+PUT {{base}}/cart/1/selected
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "selected": 3
+}
+
+### ==================== 403 ForbiddenException ====================
+
+### [403] 越权查看他人订单 — 先创建订单，记下order_id，再用token2访问
+GET {{base}}/orders/1
+Authorization: Bearer {{token2}}
+
+### [403] 越权操作他人购物车 — 修改数量
+PUT {{base}}/cart/1
+Content-Type: application/json
+Authorization: Bearer {{token2}}
+
+{
+  "newQuantity": 5
+}
+
+### [403] 越权删除他人购物车项
+DELETE {{base}}/cart/1
+Authorization: Bearer {{token2}}
+
+### ==================== 404 ResourceNotFoundException ====================
+
+### [404] 查询不存在的订单
+GET {{base}}/orders/99999
+Authorization: Bearer {{token}}
+
+### [404] 访问不存在的购物车项
+PUT {{base}}/cart/99999
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "newQuantity": 1
+}
+
+### [404] 删除不存在的购物车项
+DELETE {{base}}/cart/99999
+Authorization: Bearer {{token}}
+
+### ==================== 500 RuntimeException（未改造服务抛的） ====================
+
+### [500] 注册 — 用户名已存在（UserServiceImpl未改造，仍抛RuntimeException）
+POST {{base}}/user/register
+Content-Type: application/json
+
+{
+  "username": "exception_test",
+  "password": "123456",
+  "phone": "13811111111",
+  "email": "dup@example.com"
+}
+
+### ############################################################
+### 三、Cart：之前未覆盖的边界场景
+### ############################################################
+
+### ==================== 准备：添加测试数据 ====================
+
+### 添加商品到购物车（用于后续测试）
+POST {{base}}/cart
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "productId": 1,
+  "quantity": 2
+}
+
+### 添加第二个商品
+POST {{base}}/cart
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "productId": 3,
+  "quantity": 1
+}
+
+### ==================== GET /cart — 边界场景 ====================
+
+### 正常查询购物车列表
+GET {{base}}/cart
+Authorization: Bearer {{token}}
+
+### 未登录查询购物车（应返回401或拦截器错误）
+GET {{base}}/cart
+
+### Token格式错误
+GET {{base}}/cart
+Authorization: Bearer invalid-token-here
+
+### ==================== POST /cart — 边界场景 ====================
+
+### 添加不存在的商品
+POST {{base}}/cart
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "productId": 99999,
+  "quantity": 1
+}
+
+### 超过库存数量添加
+POST {{base}}/cart
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "productId": 1,
+  "quantity": 99999
+}
+
+### productId为0
+POST {{base}}/cart
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "productId": 0,
+  "quantity": 1
+}
+
+### productId为负数
+POST {{base}}/cart
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "productId": -1,
+  "quantity": 1
+}
+
+### ==================== PUT /cart/{cart_id} — 边界场景 ====================
+
+### newQuantity为负数
+PUT {{base}}/cart/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "newQuantity": -1
+}
+
+### newQuantity为0
+PUT {{base}}/cart/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "newQuantity": 0
+}
+
+### cart_id为非数字
+GET {{base}}/cart/abc
+Authorization: Bearer {{token}}
+
+### ==================== PUT /cart/{cart_id}/selected — 边界场景 ====================
+
+### selected为null
+PUT {{base}}/cart/1/selected
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+}
+
+### ==================== DELETE /cart/selected — 边界场景 ====================
+
+### 空购物车批量删除（无勾选商品）
+DELETE {{base}}/cart/selected
+Authorization: Bearer {{token}}
+
+### ==================== 全链路：添加→勾选→统计 → 下单 ====================
+
+### 全选购物车
+PUT {{base}}/cart/selected/batch
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "selected": 1
+}
+
+### 查看已勾选数量
+GET {{base}}/cart/selected/count
+Authorization: Bearer {{token}}
+
+### 查看总数量
+GET {{base}}/cart/count
+Authorization: Bearer {{token}}
+
+### 正常下单（验证全链路）
+POST {{base}}/orders/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "consignee": "李四",
+  "telephone": "13912345678",
+  "city": "上海",
+  "address": "南京路200号"
+}
+
+### 下单后购物车应为空
+GET {{base}}/cart
+Authorization: Bearer {{token}}
+
+### 下单后统计应为0
+GET {{base}}/cart/count
+Authorization: Bearer {{token}}
+
+### ############################################################
+### 四、Order：之前未覆盖的边界场景
+### ############################################################
+
+### ==================== 准备：下单获取订单ID ====================
+
+### 先添加商品到购物车
+POST {{base}}/cart
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "productId": 1,
+  "quantity": 1
+}
+
+### 创建订单
+POST {{base}}/orders/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "consignee": "王五",
+  "telephone": "13712345678",
+  "city": "深圳",
+  "address": "科技园路88号"
+}
+
+### ==================== GET /orders/{order_id} — 边界场景 ====================
+
+### 正常查询订单详情（替换为实际order_id）
+GET {{base}}/orders/1
+Authorization: Bearer {{token}}
+
+### 越权查看他人订单（token2查看token1的订单）
+GET {{base}}/orders/1
+Authorization: Bearer {{token2}}
+
+### order_id为0
+GET {{base}}/orders/0
+Authorization: Bearer {{token}}
+
+### order_id为负数
+GET {{base}}/orders/-1
+Authorization: Bearer {{token}}
+
+### order_id为非数字
+GET {{base}}/orders/xyz
+Authorization: Bearer {{token}}
+
+### 未登录查询订单
+GET {{base}}/orders/1
+
+### ==================== POST /orders/create — 额外边界场景 ====================
+
+### 电话含国家代码前缀
+POST {{base}}/orders/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "consignee": "赵六",
+  "telephone": "+8613812345678",
+  "city": "广州",
+  "address": "天河路100号"
+}
+
+### 电话少于11位
+POST {{base}}/orders/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "consignee": "赵六",
+  "telephone": "1380013800",
+  "city": "广州",
+  "address": "天河路100号"
+}
+
+### 电话多于11位
+POST {{base}}/orders/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "consignee": "赵六",
+  "telephone": "138001380001",
+  "city": "广州",
+  "address": "天河路100号"
+}
+
+### 电话以2开头（不是合法手机号）
+POST {{base}}/orders/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "consignee": "赵六",
+  "telephone": "23800138000",
+  "city": "广州",
+  "address": "天河路100号"
+}
+
+### 收货人特殊字符（HTML注入测试）
+POST {{base}}/orders/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "consignee": "<script>alert('xss')</script>",
+  "telephone": "13800138000",
+  "city": "北京",
+  "address": "测试地址"
+}
+
+### 收货人超长
+POST {{base}}/orders/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "consignee": "这是一个非常非常非常非常非常非常非常非常非常非常非常非常非常非常非常非常非常非常非常非常非常非常长长长的收货人名字",
+  "telephone": "13800138000",
+  "city": "北京",
+  "address": "测试地址"
+}
+
+### 缺少必填字段 — 缺少consignee
+POST {{base}}/orders/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "telephone": "13800138000",
+  "city": "北京",
+  "address": "测试地址"
+}
+
+### 缺少必填字段 — 缺少telephone
+POST {{base}}/orders/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "consignee": "张三",
+  "city": "北京",
+  "address": "测试地址"
+}
+
+### ############################################################
+### 五、Product：之前未覆盖的边界场景
+### ############################################################
+
+### ==================== GET /api/products — 正常查询 ====================
+
+### 获取所有商品
+GET {{base}}/api/products
+
+### ==================== GET /api/products/{id} — 边界场景 ====================
+
+### 查询存在的商品
+GET {{base}}/api/products/1
+
+### 查询不存在的商品
+GET {{base}}/api/products/99999
+
+### id为0
+GET {{base}}/api/products/0
+
+### id为负数
+GET {{base}}/api/products/-1
+
+### id为非数字
+GET {{base}}/api/products/abc
+
+### ==================== GET /api/products/search — 边界场景 ====================
+
+### 正常搜索
+GET {{base}}/api/products/search?keyword=手机
+
+### 空关键词
+GET {{base}}/api/products/search?keyword=
+
+### 无匹配结果
+GET {{base}}/api/products/search?keyword=xyz不存在的商品
+
+### 特殊字符关键词
+GET {{base}}/api/products/search?keyword=<script>
+
+### 缺少keyword参数
+GET {{base}}/api/products/search
+
+### ==================== GET /api/products/page — 边界场景 ====================
+
+### 正常分页
+GET {{base}}/api/products/page?page=1&pageSize=5
+
+### page=0
+GET {{base}}/api/products/page?page=0&pageSize=5
+
+### page=负数
+GET {{base}}/api/products/page?page=-1&pageSize=5
+
+### pageSize=0
+GET {{base}}/api/products/page?page=1&pageSize=0
+
+### pageSize超大概率值
+GET {{base}}/api/products/page?page=1&pageSize=10000
+
+### 缺少参数
+GET {{base}}/api/products/page
+
+### 按分类筛选
+GET {{base}}/api/products/page?page=1&pageSize=5&category=手机
+
+### 按分类+关键词组合
+GET {{base}}/api/products/page?page=1&pageSize=5&category=手机&keyword=华为
+
+### ==================== GET /api/categories ====================
+
+### 获取分类列表
+GET {{base}}/api/categories
+
+### ==================== POST /api/products — 边界场景 ====================
+
+### 正常新增商品
+POST {{base}}/api/products
+Content-Type: application/json
+
+{
+  "name": "测试商品-HTTP",
+  "description": "HTTP测试文件创建的临时商品",
+  "price": 99.99,
+  "image": "https://picsum.photos/id/99/300/300",
+  "category": "测试",
+  "brand": "测试品牌",
+  "stock": 100
+}
+
+### 名称为空
+POST {{base}}/api/products
+Content-Type: application/json
+
+{
+  "name": "",
+  "description": "测试",
+  "price": 99.99,
+  "category": "测试",
+  "brand": "测试",
+  "stock": 100
+}
+
+### 价格为负数
+POST {{base}}/api/products
+Content-Type: application/json
+
+{
+  "name": "负价格商品",
+  "description": "测试",
+  "price": -10,
+  "category": "测试",
+  "brand": "测试",
+  "stock": 100
+}
+
+### 价格为0
+POST {{base}}/api/products
+Content-Type: application/json
+
+{
+  "name": "免费商品",
+  "description": "测试",
+  "price": 0,
+  "category": "测试",
+  "brand": "测试",
+  "stock": 100
+}
+
+### 库存为负数
+POST {{base}}/api/products
+Content-Type: application/json
+
+{
+  "name": "负库存商品",
+  "description": "测试",
+  "price": 99.99,
+  "category": "测试",
+  "brand": "测试",
+  "stock": -1
+}
+
+### ==================== PUT /api/products/{id} — 边界场景 ====================
+
+### 正常更新商品
+PUT {{base}}/api/products/1
+Content-Type: application/json
+
+{
+  "name": "iPhone 15 Pro（已更新）",
+  "description": "HTTP测试更新",
+  "price": 7599.00,
+  "category": "手机",
+  "brand": "Apple",
+  "stock": 45
+}
+
+### 更新不存在的商品
+PUT {{base}}/api/products/99999
+Content-Type: application/json
+
+{
+  "name": "不存在的商品",
+  "price": 100,
+  "category": "测试",
+  "brand": "测试",
+  "stock": 10
+}
+
+### ==================== DELETE /api/products/{id} — 边界场景 ====================
+
+### 删除不存在的商品
+DELETE {{base}}/api/products/99999
+
+### 重复删除同一个商品（idempotency）
+DELETE {{base}}/api/products/99999
+
+### ############################################################
+### 六、User：之前未覆盖的边界场景
+### ############################################################
+
+### ==================== POST /user/register — 边界场景 ====================
+
+### 缺少username
+POST {{base}}/user/register
+Content-Type: application/json
+
+{
+  "password": "123456",
+  "phone": "13800000099",
+  "email": "nouser@example.com"
+}
+
+### 缺少password
+POST {{base}}/user/register
+Content-Type: application/json
+
+{
+  "username": "no_password_user",
+  "phone": "13800000098",
+  "email": "nopwd@example.com"
+}
+
+### 密码太短
+POST {{base}}/user/register
+Content-Type: application/json
+
+{
+  "username": "short_pwd",
+  "password": "12",
+  "phone": "13800000097",
+  "email": "short@example.com"
+}
+
+### 用户名太短
+POST {{base}}/user/register
+Content-Type: application/json
+
+{
+  "username": "ab",
+  "password": "123456",
+  "phone": "13800000096",
+  "email": "shortname@example.com"
+}
+
+### 邮箱格式错误
+POST {{base}}/user/register
+Content-Type: application/json
+
+{
+  "username": "bad_email",
+  "password": "123456",
+  "phone": "13800000095",
+  "email": "not-an-email"
+}
+
+### 邮箱格式错误2 — 缺少@
+POST {{base}}/user/register
+Content-Type: application/json
+
+{
+  "username": "bad_email2",
+  "password": "123456",
+  "phone": "13800000094",
+  "email": "noat.sign"
+}
+
+### 手机号少于11位
+POST {{base}}/user/register
+Content-Type: application/json
+
+{
+  "username": "short_phone",
+  "password": "123456",
+  "phone": "13800",
+  "email": "shortphone@example.com"
+}
+
+### 手机号非数字
+POST {{base}}/user/register
+Content-Type: application/json
+
+{
+  "username": "bad_phone",
+  "password": "123456",
+  "phone": "abcdefghijk",
+  "email": "badphone@example.com"
+}
+
+### 用户名含特殊字符
+POST {{base}}/user/register
+Content-Type: application/json
+
+{
+  "username": "user<script>alert(1)</script>",
+  "password": "123456",
+  "phone": "13800000093",
+  "email": "xss@example.com"
+}
+
+### 用户名含空格
+POST {{base}}/user/register
+Content-Type: application/json
+
+{
+  "username": "user name",
+  "password": "123456",
+  "phone": "13800000092",
+  "email": "space@example.com"
+}
+
+### ==================== POST /user/login — 边界场景 ====================
+
+### 正常登录
+POST {{base}}/user/login
+Content-Type: application/json
+
+{
+  "username": "exception_test",
+  "password": "123456"
+}
+
+### 用户不存在 [500]
+POST {{base}}/user/login
+Content-Type: application/json
+
+{
+  "username": "nonexistent_user_xyz",
+  "password": "123456"
+}
+
+### 密码错误 [500]
+POST {{base}}/user/login
+Content-Type: application/json
+
+{
+  "username": "exception_test",
+  "password": "wrongpassword"
+}
+
+### 缺少username
+POST {{base}}/user/login
+Content-Type: application/json
+
+{
+  "password": "123456"
+}
+
+### 缺少password
+POST {{base}}/user/login
+Content-Type: application/json
+
+{
+  "username": "exception_test"
+}
+
+### 用户名为空字符串
+POST {{base}}/user/login
+Content-Type: application/json
+
+{
+  "username": "",
+  "password": "123456"
+}
+
+### 密码为空字符串
+POST {{base}}/user/login
+Content-Type: application/json
+
+{
+  "username": "exception_test",
+  "password": ""
+}
+
+### SQL注入尝试
+POST {{base}}/user/login
+Content-Type: application/json
+
+{
+  "username": "' OR '1'='1",
+  "password": "' OR '1'='1"
+}
+
+### ############################################################
+### 七、Interceptor：拦截器边界场景
+### ############################################################
+
+### /hello 公开路径 — 无需Token
+GET {{base}}/hello
+
+### /hello 带Token也可访问
+GET {{base}}/hello
+Authorization: Bearer {{token}}
+
+### /api/products 公开路径 — 无需Token
+GET {{base}}/api/products/1
+
+### /cart 保护路径 — 无Token应拦截
+GET {{base}}/cart
+
+### /orders 保护路径 — 无Token应拦截
+GET {{base}}/orders/1
+
+### Token格式错误（非Bearer）
+GET {{base}}/cart
+Authorization: Basic dXNlcjpwYXNz
+
+### Token为空字符串
+GET {{base}}/cart
+Authorization: Bearer
+
+### ============================================================
+### 八、响应状态码汇总参考
+### ============================================================
+###   HTTP 200 — 成功
+###   HTTP 400 — BadRequestException / 参数校验失败
+###   HTTP 401 — JWT拦截器拦截（未登录/Token无效）
+###   HTTP 403 — ForbiddenException（越权操作）
+###   HTTP 404 — ResourceNotFoundException（资源不存在）
+###   HTTP 500 — RuntimeException（未改造服务抛出的业务异常）
+### ============================================================
