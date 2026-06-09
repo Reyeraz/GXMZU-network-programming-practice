@@ -1,0 +1,29 @@
+### 发票下载接口测试
+
+# 先登录获取Token
+POST http://localhost:8080/user/login
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "password123"
+}
+
+### 下载订单发票（需要替换 {token} 和 {orderId}）
+GET http://localhost:8080/invoice/download/1
+Authorization: Bearer {{token}}
+
+### 测试不存在的订单
+GET http://localhost:8080/invoice/download/99999
+Authorization: Bearer {{token}}
+
+### 测试未付款订单（状态为0，应该返回400）
+GET http://localhost:8080/invoice/download/2
+Authorization: Bearer {{token}}
+
+### 测试已取消订单（状态为4，应该返回400）
+GET http://localhost:8080/invoice/download/3
+Authorization: Bearer {{token}}
+
+### 未登录访问（应该返回401）
+GET http://localhost:8080/invoice/download/1
