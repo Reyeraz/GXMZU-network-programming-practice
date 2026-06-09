@@ -55,7 +55,7 @@
         :body-style="{ padding: '0' }"
       >
         <div class="product-image">
-          <img :src="product.image" :alt="product.name" />
+          <img :src="getProductImageUrl(product.image)" :alt="product.name" />
         </div>
         <div class="product-info">
           <h3 class="product-name">{{ product.name }}</h3>
@@ -107,6 +107,7 @@ import { useRouter } from 'vue-router'
 import { productAPI } from '../api/api.js'
 import ImageCarousel from '../components/ImageCarousel.vue'
 import { useCartStore } from '../stores/cart'
+import { getProductImageUrl } from '../utils/image'
 
 // 路由实例
 const router = useRouter()
