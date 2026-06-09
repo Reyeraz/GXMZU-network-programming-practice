@@ -1,0 +1,189 @@
+### ==========================================
+### 第21次课 — 文件上传接口测试
+### ==========================================
+### 前置条件：
+### 1. 启动后端服务：mvn spring-boot:run
+### 2. 确保 uploads/products/ 目录存在（会自动创建）
+### 3. 准备测试图片文件
+### ==========================================
+
+### ===== 1. 新增商品（含图片上传） =====
+
+### 1.1 正常新增商品 — 带图片
+# @name addProductWithImage
+POST http://localhost:8080/api/products/add
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="category"
+
+手机
+--WebAppBoundary
+Content-Disposition: form-data; name="name"
+
+iPhone 16 Pro
+--WebAppBoundary
+Content-Disposition: form-data; name="description"
+
+苹果最新旗舰手机
+--WebAppBoundary
+Content-Disposition: form-data; name="price"
+
+8999
+--WebAppBoundary
+Content-Disposition: form-data; name="brand"
+
+Apple
+--WebAppBoundary
+Content-Disposition: form-data; name="stock"
+
+50
+--WebAppBoundary
+Content-Disposition: form-data; name="isAvailable"
+
+1
+--WebAppBoundary
+Content-Disposition: form-data; name="image"; filename="test.jpg"
+Content-Type: image/jpeg
+
+< ./test-image.jpg
+--WebAppBoundary--
+
+### 1.2 新增商品 — 不带图片（image 字段为空）
+# @name addProductWithoutImage
+POST http://localhost:8080/api/products/add
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="category"
+
+笔记本
+--WebAppBoundary
+Content-Disposition: form-data; name="name"
+
+MacBook Pro 16
+--WebAppBoundary
+Content-Disposition: form-data; name="price"
+
+19999
+--WebAppBoundary
+Content-Disposition: form-data; name="stock"
+
+30
+--WebAppBoundary
+Content-Disposition: form-data; name="isAvailable"
+
+1
+--WebAppBoundary--
+
+### ===== 2. 参数校验失败 =====
+
+### 2.1 缺少必填字段（name 为空）
+POST http://localhost:8080/api/products/add
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="category"
+
+手机
+--WebAppBoundary
+Content-Disposition: form-data; name="price"
+
+999
+--WebAppBoundary
+Content-Disposition: form-data; name="stock"
+
+10
+--WebAppBoundary
+Content-Disposition: form-data; name="isAvailable"
+
+1
+--WebAppBoundary--
+
+### 2.2 价格为 0
+POST http://localhost:8080/api/products/add
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="category"
+
+手机
+--WebAppBoundary
+Content-Disposition: form-data; name="name"
+
+测试商品
+--WebAppBoundary
+Content-Disposition: form-data; name="price"
+
+0
+--WebAppBoundary
+Content-Disposition: form-data; name="stock"
+
+10
+--WebAppBoundary
+Content-Disposition: form-data; name="isAvailable"
+
+1
+--WebAppBoundary--
+
+### 2.3 库存为负数
+POST http://localhost:8080/api/products/add
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="category"
+
+手机
+--WebAppBoundary
+Content-Disposition: form-data; name="name"
+
+测试商品
+--WebAppBoundary
+Content-Disposition: form-data; name="price"
+
+999
+--WebAppBoundary
+Content-Disposition: form-data; name="stock"
+
+-1
+--WebAppBoundary
+Content-Disposition: form-data; name="isAvailable"
+
+1
+--WebAppBoundary--
+
+### 2.4 缺少 isAvailable
+POST http://localhost:8080/api/products/add
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="category"
+
+手机
+--WebAppBoundary
+Content-Disposition: form-data; name="name"
+
+测试商品
+--WebAppBoundary
+Content-Disposition: form-data; name="price"
+
+999
+--WebAppBoundary
+Content-Disposition: form-data; name="stock"
+
+10
+--WebAppBoundary--
+
+### ===== 3. 访问上传的图片 =====
+
+### 3.1 通过 URL 访问已上传的图片
+# 注意：URL 在新增商品响应中返回，此处为示例
+GET http://localhost:8080/images/products/{{imageFileName}}
+
+### ===== 4. 原有接口兼容性 =====
+
+### 4.1 获取所有商品（验证图片 URL 字段）
+GET http://localhost:8080/api/products
+
+### 4.2 根据 ID 获取商品
+GET http://localhost:8080/api/products/1

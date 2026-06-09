@@ -3,6 +3,9 @@ package com.example.demo.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.example.demo.exception.BadRequestException;
+import com.example.demo.exception.ForbiddenException;
+import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.mapper.CartMapper;
 import com.example.demo.mapper.ProductMapper;
 import com.example.demo.model.Cart;
@@ -74,13 +77,13 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements Ca
     public void addToCart(Integer userId, Long productId, Integer quantity) {
         Product product = productMapper.selectById(productId);
         if (product == null || product.getIsAvailable() == null || product.getIsAvailable() == 0) {
-            throw new RuntimeException("商品不存在或已下架");
+            throw new BadRequestException("商品不存在或已下架");
         }
         if (quantity < 1) {
-            throw new RuntimeException("购买数量必须大于0");
+            throw new BadRequestException("购买数量必须大于0");
         }
         if (quantity > product.getStock()) {
-            throw new RuntimeException("库存不足，当前仅剩" + product.getStock() + "件");
+            throw new BadRequestException("库存不足，当前仅剩" + product.getStock() + "件");
         }
 
         LambdaQueryWrapper<Cart> cartWrapper = new LambdaQueryWrapper<>();
@@ -104,18 +107,18 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements Ca
     public void updateQuantity(Integer userId, Integer cartId, Integer newQuantity) {
         Cart cart = baseMapper.selectById(cartId);
         if (cart == null) {
-            throw new RuntimeException("购物车记录不存在");
+            throw new ResourceNotFoundException("购物车记录不存在");
         }
         if (!cart.getUserId().equals(userId)) {
-            throw new RuntimeException("无权限操作该购物车项");
+            throw new ForbiddenException("无权限操作该购物车项");
         }
 
         Product product = productMapper.selectById(cart.getProductId());
         if (product == null || product.getIsAvailable() == null || product.getIsAvailable() != 1) {
-            throw new RuntimeException("商品已失效，请删除后重新添加");
+            throw new BadRequestException("商品已失效，请删除后重新添加");
         }
         if (newQuantity > product.getStock()) {
-            throw new RuntimeException("库存不足，当前仅剩" + product.getStock() + "件");
+            throw new BadRequestException("库存不足，当前仅剩" + product.getStock() + "件");
         }
 
         cart.setQuantity(newQuantity);
@@ -126,10 +129,10 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements Ca
     public void updateSelected(Integer userId, Integer cartId, Integer selected) {
         Cart cart = baseMapper.selectById(cartId);
         if (cart == null) {
-            throw new RuntimeException("购物车记录不存在");
+            throw new ResourceNotFoundException("购物车记录不存在");
         }
         if (!cart.getUserId().equals(userId)) {
-            throw new RuntimeException("无权限操作该购物车项");
+            throw new ForbiddenException("无权限操作该购物车项");
         }
         cart.setSelected(selected);
         baseMapper.updateById(cart);
@@ -147,10 +150,10 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements Ca
     public void deleteCartItem(Integer userId, Integer cartId) {
         Cart cart = baseMapper.selectById(cartId);
         if (cart == null) {
-            throw new RuntimeException("购物车记录不存在");
+            throw new ResourceNotFoundException("购物车记录不存在");
         }
         if (!cart.getUserId().equals(userId)) {
-            throw new RuntimeException("无权限操作该购物车项");
+            throw new ForbiddenException("无权限操作该购物车项");
         }
         baseMapper.deleteById(cartId);
     }

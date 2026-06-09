@@ -2,6 +2,7 @@ package com.example.demo;
 
 import com.example.demo.config.GlobalExceptionHandler;
 import com.example.demo.config.SecurityConfig;
+import com.example.demo.config.UploadProperties;
 import com.example.demo.config.WebConfig;
 import com.example.demo.controller.OrderController;
 import com.example.demo.dto.OrderCreateRequest;
@@ -38,7 +39,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest
-@ContextConfiguration(classes = {OrderController.class, GlobalExceptionHandler.class, SecurityConfig.class, WebConfig.class})
+@ContextConfiguration(classes = {OrderController.class, GlobalExceptionHandler.class, SecurityConfig.class, WebConfig.class, UploadProperties.class})
 class OrderControllerTest {
 
     @Autowired

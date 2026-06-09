@@ -3,6 +3,7 @@ package com.example.demo.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.demo.dto.UserLoginRequest;
 import com.example.demo.dto.UserRegisterRequest;
+import com.example.demo.exception.BadRequestException;
 import com.example.demo.mapper.UserMapper;
 import com.example.demo.model.User;
 import com.example.demo.service.UserService;
@@ -23,14 +24,14 @@ public class UserServiceImpl implements UserService {
         LambdaQueryWrapper<User> usernameWrapper = new LambdaQueryWrapper<>();
         usernameWrapper.eq(User::getUsername, request.getUsername());
         if (userMapper.selectCount(usernameWrapper) > 0) {
-            throw new RuntimeException("用户名已存在");
+            throw new BadRequestException("用户名已存在");
         }
 
         if (request.getPhone() != null && !request.getPhone().isEmpty()) {
             LambdaQueryWrapper<User> phoneWrapper = new LambdaQueryWrapper<>();
             phoneWrapper.eq(User::getPhone, request.getPhone());
             if (userMapper.selectCount(phoneWrapper) > 0) {
-                throw new RuntimeException("手机号已被注册");
+                throw new BadRequestException("手机号已被注册");
             }
         }
 
@@ -53,15 +54,15 @@ public class UserServiceImpl implements UserService {
         User user = userMapper.selectOne(wrapper);
 
         if (user == null) {
-            throw new RuntimeException("用户名或密码错误");
+            throw new BadRequestException("用户名或密码错误");
         }
 
         if (user.getStatus() == 0) {
-            throw new RuntimeException("用户已被禁用");
+            throw new BadRequestException("用户已被禁用");
         }
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("用户名或密码错误");
+            throw new BadRequestException("用户名或密码错误");
         }
 
         return JwtUtil.generateToken(user.getUserId(), user.getUsername());

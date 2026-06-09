@@ -14,11 +14,14 @@ import com.example.demo.model.Cart;
 import com.example.demo.model.OrderItem;
 import com.example.demo.model.Orders;
 import com.example.demo.model.Product;
+import com.example.demo.service.EmailService;
+import com.example.demo.service.OrderAsyncService;
 import com.example.demo.service.OrdersService;
 import com.example.demo.vo.OrderCreateVO;
 import com.example.demo.vo.OrderDetailVO;
 import com.example.demo.vo.OrderItemVO;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +30,12 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 订单服务实现类
+ * 使用 MyBatis-Plus ServiceImpl 简化 CRUD 操作
+ * 异步处理：库存扣减、购物车清理、邮件通知
+ */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> implements OrdersService {
@@ -34,10 +43,13 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
     private final CartMapper cartMapper;
     private final ProductMapper productMapper;
     private final OrderItemMapper orderItemMapper;
+    private final OrderAsyncService orderAsyncService;
+    private final EmailService emailService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public OrderCreateVO createOrder(Integer userId, OrderCreateRequest request) {
+        // 1. 查询已选中的购物车商品
         LambdaQueryWrapper<Cart> cartWrapper = new LambdaQueryWrapper<>();
         cartWrapper.eq(Cart::getUserId, userId)
                 .eq(Cart::getSelected, 1);
@@ -47,6 +59,7 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
             throw new BadRequestException("购物车中没有已选中的商品");
         }
 
+        // 2. 校验商品状态并计算金额
         List<OrderItem> orderItemList = new ArrayList<>();
         BigDecimal totalAmount = BigDecimal.ZERO;
 
@@ -56,6 +69,7 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
                 throw new BadRequestException("商品[" + (product != null ? product.getName() : "未知") + "]已下架或不存在");
             }
 
+            // 同步扣减库存（事务内保证原子性）
             int affectedRows = productMapper.decreaseStock(product.getId(), cart.getQuantity());
             if (affectedRows == 0) {
                 throw new BadRequestException("商品[" + product.getName() + "]库存不足");
@@ -77,6 +91,7 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
             totalAmount = totalAmount.add(amount);
         }
 
+        // 3. 创建订单主表
         Orders order = new Orders();
         order.setUserId(userId);
         order.setOrderDate(LocalDateTime.now());
@@ -89,20 +104,29 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         order.setAddress(request.getAddress());
         baseMapper.insert(order);
 
+        // 4. 批量插入订单明细
         for (OrderItem orderItem : orderItemList) {
             orderItem.setOrderId(order.getOrderId());
             orderItemMapper.insert(orderItem);
         }
 
+        // 5. 同步清空已选购物车（关键业务操作，保证事务一致性）
         for (Cart cart : selectedCartList) {
             cartMapper.deleteById(cart.getCartId());
         }
 
+        // 6. 构建返回结果
         OrderCreateVO result = new OrderCreateVO();
         result.setOrderId(order.getOrderId());
         result.setStatus(order.getStatus());
         result.setPayAmount(order.getPayAmount());
         result.setOrderDate(order.getOrderDate());
+
+        // 7. 异步发送订单确认邮件（不阻塞主流程）
+        // 注意：实际项目中应从用户表获取邮箱，这里演示用 request 中的字段
+        // emailService.sendOrderConfirmationEmail(userEmail, order, result);
+
+        log.info("订单创建成功: orderId={}, userId={}, payAmount={}", order.getOrderId(), userId, order.getPayAmount());
         return result;
     }
 

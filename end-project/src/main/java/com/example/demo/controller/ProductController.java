@@ -1,10 +1,13 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.ProductAddDTO;
 import com.example.demo.model.ApiResponse;
 import com.example.demo.model.PageResult;
 import com.example.demo.model.Product;
 import com.example.demo.service.ProductService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -60,6 +63,14 @@ public class ProductController {
     @PostMapping("/products")
     public ApiResponse<Product> createProduct(@RequestBody Product product) {
         return ApiResponse.ok(productService.createProduct(product));
+    }
+
+    // POST - 新增商品（含图片上传）
+    @PostMapping("/products/add")
+    public ApiResponse<Void> addProduct(@Valid @ModelAttribute ProductAddDTO dto,
+                                        @RequestParam(value = "image", required = false) MultipartFile image) {
+        productService.addProductWithImage(dto, image);
+        return ApiResponse.ok(null);
     }
 
     // PUT - 更新商品

@@ -1,0 +1,500 @@
+### ==========================================
+### 实验：电商购物平台后端核心接口开发与规范封装
+### 接口测试文件（ApiFox / IntelliJ HTTP Client）
+### ==========================================
+### 前置条件：
+### 1. 启动后端服务：mvn spring-boot:run
+### 2. 确保数据库 product 表存在
+### ==========================================
+
+### ==========================================
+### 一、商品查询接口（GET）— 无需认证
+### ==========================================
+
+### 1.1 获取所有商品
+# @name getAllProducts
+GET http://localhost:8080/api/products
+
+> {%
+    client.test("获取所有商品 — 请求成功", function() {
+        client.assert(response.status === 200, "HTTP 状态码应为 200");
+        client.assert(response.body.success === true, "success 应为 true");
+        client.assert(Array.isArray(response.body.data), "data 应为数组");
+    });
+%}
+
+### 1.2 根据 ID 获取商品（正常）
+# @name getProductById
+GET http://localhost:8080/api/products/1
+
+> {%
+    client.test("根据ID查询 — 请求成功", function() {
+        client.assert(response.status === 200, "HTTP 状态码应为 200");
+        client.assert(response.body.success === true, "success 应为 true");
+        client.assert(response.body.data !== null, "data 不应为 null");
+    });
+%}
+
+### 1.3 根据 ID 获取商品 — 商品不存在（异常场景）
+GET http://localhost:8080/api/products/99999
+
+> {%
+    client.test("商品不存在 — 返回失败", function() {
+        client.assert(response.status === 200, "HTTP 状态码应为 200");
+        client.assert(response.body.success === false, "success 应为 false");
+        client.assert(response.body.message === "商品不存在", "message 应为 '商品不存在'");
+    });
+%}
+
+### 1.4 搜索商品 — 按关键词
+GET http://localhost:8080/api/products/search?keyword=iPhone
+
+> {%
+    client.test("搜索商品 — 请求成功", function() {
+        client.assert(response.status === 200, "HTTP 状态码应为 200");
+        client.assert(response.body.success === true, "success 应为 true");
+        client.assert(Array.isArray(response.body.data), "data 应为数组");
+    });
+%}
+
+### 1.5 搜索商品 — 无结果
+GET http://localhost:8080/api/products/search?keyword=不存在的商品XYZ
+
+> {%
+    client.test("搜索无结果 — 返回空数组", function() {
+        client.assert(response.status === 200, "HTTP 状态码应为 200");
+        client.assert(response.body.success === true, "success 应为 true");
+        client.assert(response.body.data.length === 0, "data 应为空数组");
+    });
+%}
+
+### 1.6 分页查询商品 — 默认参数
+# @name getProductsByPage
+GET http://localhost:8080/api/products/page?page=1&pageSize=4
+
+> {%
+    client.test("分页查询 — 请求成功", function() {
+        client.assert(response.status === 200, "HTTP 状态码应为 200");
+        client.assert(response.body.success === true, "success 应为 true");
+        client.assert(response.body.data.items !== undefined, "应包含 items 字段");
+        client.assert(response.body.data.total !== undefined, "应包含 total 字段");
+        client.assert(response.body.data.page === 1, "page 应为 1");
+        client.assert(response.body.data.pageSize === 4, "pageSize 应为 4");
+    });
+%}
+
+### 1.7 分页查询 — 带分类筛选
+GET http://localhost:8080/api/products/page?page=1&pageSize=10&category=手机
+
+> {%
+    client.test("分页+分类筛选 — 请求成功", function() {
+        client.assert(response.status === 200, "HTTP 状态码应为 200");
+        client.assert(response.body.success === true, "success 应为 true");
+    });
+%}
+
+### 1.8 分页查询 — 带关键词搜索
+GET http://localhost:8080/api/products/page?page=1&pageSize=10&keyword=iPhone
+
+> {%
+    client.test("分页+关键词搜索 — 请求成功", function() {
+        client.assert(response.status === 200, "HTTP 状态码应为 200");
+        client.assert(response.body.success === true, "success 应为 true");
+    });
+%}
+
+### 1.9 获取所有分类
+GET http://localhost:8080/api/categories
+
+> {%
+    client.test("获取分类 — 请求成功", function() {
+        client.assert(response.status === 200, "HTTP 状态码应为 200");
+        client.assert(response.body.success === true, "success 应为 true");
+        client.assert(Array.isArray(response.body.data), "data 应为数组");
+    });
+%}
+
+### ==========================================
+### 二、商品新增接口（POST）— JSON 方式
+### ==========================================
+
+### 2.1 新增商品 — 正常（JSON 方式）
+# @name createProduct
+POST http://localhost:8080/api/products
+Content-Type: application/json
+
+{
+    "name": "测试手机",
+    "description": "这是一部测试手机",
+    "price": 2999.00,
+    "category": "手机",
+    "brand": "TestBrand",
+    "stock": 100,
+    "isAvailable": 1
+}
+
+> {%
+    client.test("新增商品 — 请求成功", function() {
+        client.assert(response.status === 200, "HTTP 状态码应为 200");
+        client.assert(response.body.success === true, "success 应为 true");
+        client.assert(response.body.data !== null, "data 不应为 null");
+        client.assert(response.body.data.id !== undefined, "应返回商品ID");
+    });
+%}
+
+### ==========================================
+### 三、商品新增接口（POST）— 含图片上传
+### ==========================================
+
+### 3.1 新增商品 — 带图片上传
+# @name addProductWithImage
+POST http://localhost:8080/api/products/add
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="category"
+
+手机
+--WebAppBoundary
+Content-Disposition: form-data; name="name"
+
+iPhone 16 Pro Max
+--WebAppBoundary
+Content-Disposition: form-data; name="description"
+
+苹果最新旗舰手机，A18 Pro芯片
+--WebAppBoundary
+Content-Disposition: form-data; name="price"
+
+9999
+--WebAppBoundary
+Content-Disposition: form-data; name="brand"
+
+Apple
+--WebAppBoundary
+Content-Disposition: form-data; name="stock"
+
+50
+--WebAppBoundary
+Content-Disposition: form-data; name="isAvailable"
+
+1
+--WebAppBoundary
+Content-Disposition: form-data; name="image"; filename="test.jpg"
+Content-Type: image/jpeg
+
+< ./test-image.jpg
+--WebAppBoundary--
+
+### 3.2 新增商品 — 不带图片
+POST http://localhost:8080/api/products/add
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="category"
+
+笔记本
+--WebAppBoundary
+Content-Disposition: form-data; name="name"
+
+ThinkPad X1 Carbon
+--WebAppBoundary
+Content-Disposition: form-data; name="description"
+
+联想商务笔记本
+--WebAppBoundary
+Content-Disposition: form-data; name="price"
+
+12999
+--WebAppBoundary
+Content-Disposition: form-data; name="brand"
+
+Lenovo
+--WebAppBoundary
+Content-Disposition: form-data; name="stock"
+
+30
+--WebAppBoundary
+Content-Disposition: form-data; name="isAvailable"
+
+1
+--WebAppBoundary--
+
+### ==========================================
+### 四、商品更新接口（PUT）
+### ==========================================
+
+### 4.1 更新商品 — 正常
+# @name updateProduct
+PUT http://localhost:8080/api/products/1
+Content-Type: application/json
+
+{
+    "name": "iPhone 16 Pro（已更新）",
+    "description": "更新后的描述",
+    "price": 8999.00,
+    "category": "手机",
+    "brand": "Apple",
+    "stock": 200,
+    "isAvailable": 1
+}
+
+> {%
+    client.test("更新商品 — 请求成功", function() {
+        client.assert(response.status === 200, "HTTP 状态码应为 200");
+        client.assert(response.body.success === true, "success 应为 true");
+    });
+%}
+
+### 4.2 更新商品 — 商品不存在（异常场景）
+PUT http://localhost:8080/api/products/99999
+Content-Type: application/json
+
+{
+    "name": "不存在的商品",
+    "price": 100.00,
+    "category": "测试",
+    "stock": 10,
+    "isAvailable": 1
+}
+
+> {%
+    client.test("更新不存在的商品 — 返回失败", function() {
+        client.assert(response.status === 200, "HTTP 状态码应为 200");
+        client.assert(response.body.success === false, "success 应为 false");
+        client.assert(response.body.message === "商品不存在", "message 应为 '商品不存在'");
+    });
+%}
+
+### ==========================================
+### 五、商品删除接口（DELETE）
+### ==========================================
+
+### 5.1 删除商品 — 正常
+# 先新增一个待删除的商品
+# @name deleteProduct
+DELETE http://localhost:8080/api/products/2
+
+> {%
+    client.test("删除商品 — 请求成功", function() {
+        client.assert(response.status === 200, "HTTP 状态码应为 200");
+        client.assert(response.body.success === true, "success 应为 true");
+    });
+%}
+
+### 5.2 删除商品 — 商品不存在（异常场景）
+DELETE http://localhost:8080/api/products/99999
+
+> {%
+    client.test("删除不存在的商品 — 返回失败", function() {
+        client.assert(response.status === 200, "HTTP 状态码应为 200");
+        client.assert(response.body.success === false, "success 应为 false");
+        client.assert(response.body.message === "商品不存在", "message 应为 '商品不存在'");
+    });
+%}
+
+### ==========================================
+### 六、全局异常处理器测试
+### ==========================================
+
+### 6.1 接口不存在（404）
+GET http://localhost:8080/api/not-exist-path
+
+> {%
+    client.test("接口不存在 — 返回 404", function() {
+        client.assert(response.status === 404, "HTTP 状态码应为 404");
+    });
+%}
+
+### 6.2 参数校验失败 — 缺少必填字段（name 为空）
+POST http://localhost:8080/api/products/add
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="category"
+
+手机
+--WebAppBoundary
+Content-Disposition: form-data; name="price"
+
+999
+--WebAppBoundary
+Content-Disposition: form-data; name="stock"
+
+10
+--WebAppBoundary
+Content-Disposition: form-data; name="isAvailable"
+
+1
+--WebAppBoundary--
+
+> {%
+    client.test("缺少 name — 返回 400 参数校验失败", function() {
+        client.assert(response.status === 400, "HTTP 状态码应为 400");
+        client.assert(response.body.success === false, "success 应为 false");
+        client.assert(response.body.message === "商品名称不能为空", "message 应为 '商品名称不能为空'");
+    });
+%}
+
+### 6.3 参数校验失败 — 价格为 0
+POST http://localhost:8080/api/products/add
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="category"
+
+手机
+--WebAppBoundary
+Content-Disposition: form-data; name="name"
+
+测试商品
+--WebAppBoundary
+Content-Disposition: form-data; name="price"
+
+0
+--WebAppBoundary
+Content-Disposition: form-data; name="stock"
+
+10
+--WebAppBoundary
+Content-Disposition: form-data; name="isAvailable"
+
+1
+--WebAppBoundary--
+
+> {%
+    client.test("价格为0 — 返回 400", function() {
+        client.assert(response.status === 400, "HTTP 状态码应为 400");
+        client.assert(response.body.success === false, "success 应为 false");
+    });
+%}
+
+### 6.4 参数校验失败 — 库存为负数
+POST http://localhost:8080/api/products/add
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="category"
+
+手机
+--WebAppBoundary
+Content-Disposition: form-data; name="name"
+
+测试商品
+--WebAppBoundary
+Content-Disposition: form-data; name="price"
+
+999
+--WebAppBoundary
+Content-Disposition: form-data; name="stock"
+
+-1
+--WebAppBoundary
+Content-Disposition: form-data; name="isAvailable"
+
+1
+--WebAppBoundary--
+
+> {%
+    client.test("库存为负数 — 返回 400", function() {
+        client.assert(response.status === 400, "HTTP 状态码应为 400");
+        client.assert(response.body.success === false, "success 应为 false");
+    });
+%}
+
+### 6.5 参数校验失败 — 缺少 category
+POST http://localhost:8080/api/products/add
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="name"
+
+测试商品
+--WebAppBoundary
+Content-Disposition: form-data; name="price"
+
+999
+--WebAppBoundary
+Content-Disposition: form-data; name="stock"
+
+10
+--WebAppBoundary
+Content-Disposition: form-data; name="isAvailable"
+
+1
+--WebAppBoundary--
+
+> {%
+    client.test("缺少 category — 返回 400", function() {
+        client.assert(response.status === 400, "HTTP 状态码应为 400");
+        client.assert(response.body.success === false, "success 应为 false");
+        client.assert(response.body.message === "分类不能为空", "message 应为 '分类不能为空'");
+    });
+%}
+
+### 6.6 参数校验失败 — 缺少 isAvailable
+POST http://localhost:8080/api/products/add
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="category"
+
+手机
+--WebAppBoundary
+Content-Disposition: form-data; name="name"
+
+测试商品
+--WebAppBoundary
+Content-Disposition: form-data; name="price"
+
+999
+--WebAppBoundary
+Content-Disposition: form-data; name="stock"
+
+10
+--WebAppBoundary--
+
+> {%
+    client.test("缺少 isAvailable — 返回 400", function() {
+        client.assert(response.status === 400, "HTTP 状态码应为 400");
+        client.assert(response.body.success === false, "success 应为 false");
+    });
+%}
+
+### 6.7 使用非法 HTTP 方法（Method Not Allowed）
+# @name methodNotAllowed
+PUT http://localhost:8080/api/products
+Content-Type: application/json
+
+{
+    "name": "test"
+}
+
+> {%
+    client.test("非法HTTP方法 — 返回 405", function() {
+        client.assert(response.status === 405, "HTTP 状态码应为 405");
+    });
+%}
+
+### ==========================================
+### 七、未认证访问受保护接口测试
+### ==========================================
+
+### 7.1 未携带 Token 访问受保护接口（如订单接口）
+GET http://localhost:8080/orders
+
+> {%
+    client.test("未认证访问 — 返回 401", function() {
+        client.assert(response.status === 401, "HTTP 状态码应为 401");
+    });
+%}
+
+### 7.2 携带无效 Token 访问受保护接口
+GET http://localhost:8080/orders
+Authorization: Bearer invalid.token.here
+
+> {%
+    client.test("无效Token — 返回 401", function() {
+        client.assert(response.status === 401, "HTTP 状态码应为 401");
+    });
+%}

@@ -2,11 +2,15 @@ package com.example.demo;
 
 import com.example.demo.config.GlobalExceptionHandler;
 import com.example.demo.config.SecurityConfig;
+import com.example.demo.config.UploadProperties;
 import com.example.demo.config.WebConfig;
 import com.example.demo.controller.CartController;
 import com.example.demo.dto.AddToCartRequest;
 import com.example.demo.dto.UpdateCartQuantityRequest;
 import com.example.demo.dto.UpdateCartSelectedRequest;
+import com.example.demo.exception.BadRequestException;
+import com.example.demo.exception.ForbiddenException;
+import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.interceptor.JwtInterceptor;
 import com.example.demo.service.CartService;
 import com.example.demo.vo.CartItemVO;
@@ -31,7 +35,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest
-@ContextConfiguration(classes = {CartController.class, GlobalExceptionHandler.class, SecurityConfig.class, WebConfig.class})
+@ContextConfiguration(classes = {CartController.class, GlobalExceptionHandler.class, SecurityConfig.class, WebConfig.class, UploadProperties.class})
 class CartControllerTest {
 
     @Autowired
@@ -170,18 +174,19 @@ class CartControllerTest {
         }
 
         @Test
-        @DisplayName("业务异常 — Service抛运行时异常")
+        @DisplayName("业务异常 — 商品不存在或已下架（400）")
         void shouldReturnFailWhenServiceThrows() throws Exception {
             AddToCartRequest req = new AddToCartRequest();
             req.setProductId(999L);
             req.setQuantity(1);
 
-            doThrow(new RuntimeException("商品不存在或已下架"))
+            doThrow(new BadRequestException("商品不存在或已下架"))
                 .when(cartService).addToCart(eq(TEST_USER), eq(999L), eq(1));
 
             mockMvc.perform(post("/cart")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("商品不存在或已下架"));
         }
@@ -240,12 +245,13 @@ class CartControllerTest {
             UpdateCartQuantityRequest req = new UpdateCartQuantityRequest();
             req.setNewQuantity(3);
 
-            doThrow(new RuntimeException("无权限操作该购物车项"))
+            doThrow(new ForbiddenException("无权限操作该购物车项"))
                 .when(cartService).updateQuantity(eq(TEST_USER), eq(999), eq(3));
 
             mockMvc.perform(put("/cart/999")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("无权限操作该购物车项"));
         }
@@ -381,10 +387,11 @@ class CartControllerTest {
         @Test
         @DisplayName("403 — 越权删除他人购物车")
         void shouldFailWhenNotOwner() throws Exception {
-            doThrow(new RuntimeException("无权限操作该购物车项"))
+            doThrow(new ForbiddenException("无权限操作该购物车项"))
                 .when(cartService).deleteCartItem(eq(TEST_USER), eq(999));
 
             mockMvc.perform(delete("/cart/999"))
+                .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("无权限操作该购物车项"));
         }
