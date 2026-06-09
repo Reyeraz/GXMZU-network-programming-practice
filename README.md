@@ -153,6 +153,74 @@
   - CartController代码审核：发现拦截器已校验userId，删除重复判空
   - 实现购物车完整9个REST API接口（GET/POST/PUT/DELETE）
 
+### 第18次课 - 订单接口开发
+- **PDF**: `课件/第18次课-订单接口开发-1.pdf` + `课件/第18次课-订单接口开发-2.pdf` + `课件/订单管理接口文档.pdf`
+- **完成日期**: 2026-05-26
+- **产出**:
+  - `end-project/src/main/java/com/example/demo/model/Orders.java` — 订单主表实体
+  - `end-project/src/main/java/com/example/demo/model/OrderItem.java` — 订单明细实体
+  - `end-project/src/main/java/com/example/demo/dto/OrderCreateRequest.java` — 创建订单请求DTO
+  - `end-project/src/main/java/com/example/demo/vo/OrderCreateVO.java` — 订单创建响应VO
+  - `end-project/src/main/java/com/example/demo/vo/OrderDetailVO.java` — 订单详情VO
+  - `end-project/src/main/java/com/example/demo/vo/OrderItemVO.java` — 订单项VO
+  - `end-project/src/main/java/com/example/demo/mapper/OrdersMapper.java` — 订单Mapper
+  - `end-project/src/main/java/com/example/demo/mapper/OrderItemMapper.java` — 订单明细Mapper
+  - `end-project/src/main/java/com/example/demo/service/OrdersService.java` — 订单服务接口
+  - `end-project/src/main/java/com/example/demo/service/impl/OrdersServiceImpl.java` — 订单服务实现
+  - `end-project/src/main/java/com/example/demo/controller/OrderController.java` — 订单控制器
+- **关键设计**:
+  - 乐观锁扣库存：`UPDATE product SET stock = stock - #{quantity} WHERE stock >= #{quantity}`
+  - 订单明细保存商品快照（product_name、price）
+  - @Transactional 事务保护
+
+### 第19次课 - Spring统一异常处理
+- **PDF**: `课件/第19次课-Spring统一异常处理.pdf`
+- **完成日期**: 2026-05-27
+- **产出**:
+  - `end-project/src/main/java/com/example/demo/exception/BusinessException.java` — 业务异常基类
+  - `end-project/src/main/java/com/example/demo/exception/BadRequestException.java` — 400 异常
+  - `end-project/src/main/java/com/example/demo/exception/ForbiddenException.java` — 403 异常
+  - `end-project/src/main/java/com/example/demo/exception/ResourceNotFoundException.java` — 404 异常
+  - 更新 `GlobalExceptionHandler` — 按异常类型返回不同HTTP状态码
+
+### 第20次课 - MyBatis-Plus开发
+- **PDF**: `课件/第20次课-MyBatis-Plus开发-基础知识.pdf` + `课件/第20次课-MyBatis-Plus开发-项目实践.pdf`
+- **完成日期**: 2026-06-02
+- **产出**:
+  - `end-project/src/main/java/com/example/demo/config/MybatisPlusConfig.java` — 分页插件配置
+  - `end-project/src/main/java/com/example/demo/config/AsyncConfig.java` — 异步任务配置
+  - `end-project/src/main/java/com/example/demo/service/OrderAsyncService.java` — 异步扣库存/清购物车
+  - `end-project/src/main/java/com/example/demo/service/EmailService.java` — 邮件发送服务
+  - Service层重构为 IService/ServiceImpl 模式
+  - 自定义异常全量迁移
+
+### 第21次课 - 文件上传
+- **PDF**: `课件/第21次课-文件上传.pdf`
+- **完成日期**: 2026-06-03
+- **产出**:
+  - `end-project/src/main/java/com/example/demo/config/UploadProperties.java` — 上传配置属性
+  - `end-project/src/main/java/com/example/demo/utils/ImageUploadUtils.java` — 图片上传工具类
+  - `end-project/src/main/java/com/example/demo/dto/ProductAddDTO.java` — 商品新增DTO
+  - 更新 `WebConfig` — 静态资源映射 + 拦截器放行
+  - 更新 `ProductController` — 新增 `POST /api/products/add` 带图片上传
+
+### 第22次课 - 文件下载
+- **PDF**: `课件/第22次课-文件下载.pdf`
+- **完成日期**: 2026-06-09
+- **产出**:
+  - `end-project/src/main/java/com/example/demo/dto/OrderInvoiceDTO.java` — 订单发票数据传输对象
+  - `end-project/src/main/java/com/example/demo/mapper/OrderInvoiceMapper.java` — 发票数据查询Mapper
+  - `end-project/src/main/java/com/example/demo/service/InvoiceService.java` — 发票服务接口
+  - `end-project/src/main/java/com/example/demo/service/InvoicePdfService.java` — PDF生成服务接口
+  - `end-project/src/main/java/com/example/demo/service/impl/InvoiceServiceImpl.java` — 发票服务实现
+  - `end-project/src/main/java/com/example/demo/service/impl/InvoicePdfServiceImpl.java` — PDF生成实现（Apache PDFBox）
+  - `end-project/src/main/java/com/example/demo/controller/InvoiceController.java` — 发票下载接口
+  - `end-project/src/main/resources/fonts/README.md` — 中文字体下载说明
+- **关键设计**:
+  - 使用 Apache PDFBox 生成订单发票PDF
+  - 支持中文（需下载思源黑体字体）
+  - 订单状态校验：待付款/已取消不能下载
+
 ## 项目结构
 
 ```
@@ -174,20 +242,15 @@
 │   ├── 第17次课-CartController代码审核与优化.pdf
 │   ├── 第17次课-购物车接口开发-续.pdf
 │   ├── 购物车管理接口文档 (1).pdf
-│   ├── 第11次课-API接口文档/额外文件/
-│   │   ├── product_table.sql
-│   │   └── API接口文档-商品管理.md
-│   ├── 第12次课-搭建第一个Web API接口/额外文件/
-│   │   └── api-test-backend.http
-│   ├── 第12次课-Spring IoC/额外文件/
-│   │   └── api-test-ioc.http
-│   ├── 第14次课-用户注册与登录/额外文件/
-│   │   └── api-test-user.http
-│   ├── 第16次课-购物车接口开发/额外文件/
-│   │   ├── api-test-cart.http
-│   │   └── cart_table.sql
-│   └── 第17次课-CartController代码审核与优化/额外文件/
-│       └── api-test-cart-new.http
+│   ├── 第18次课-订单接口开发-1.pdf
+│   ├── 第18次课-订单接口开发-2.pdf
+│   ├── 订单管理接口文档.pdf
+│   ├── 第19次课-Spring统一异常处理.pdf
+│   ├── 第20次课-MyBatis-Plus开发-基础知识.pdf
+│   ├── 第20次课-MyBatis-Plus开发-项目实践.pdf
+│   ├── 第21次课-文件上传.pdf
+│   ├── 第22次课-文件下载.pdf
+│   └── ... (额外文件目录)
 ├── front-project/                     # Vue.js 前端项目
 └── end-project/                       # Spring Boot 后端项目
     ├── pom.xml
@@ -196,28 +259,46 @@
         ├── config/
         │   ├── WebConfig.java
         │   ├── SecurityConfig.java
-        │   └── GlobalExceptionHandler.java
+        │   ├── GlobalExceptionHandler.java
+        │   ├── MybatisPlusConfig.java
+        │   ├── AsyncConfig.java
+        │   └── UploadProperties.java
         ├── controller/
         │   ├── CartController.java
         │   ├── HelloController.java
         │   ├── ProductController.java
-        │   └── UserController.java
+        │   ├── UserController.java
+        │   ├── OrderController.java
+        │   └── InvoiceController.java
         ├── service/
         │   ├── CartService.java
         │   ├── GreetingService.java
         │   ├── ProductService.java
         │   ├── UserService.java
+        │   ├── OrdersService.java
+        │   ├── InvoiceService.java
+        │   ├── InvoicePdfService.java
+        │   ├── EmailService.java
+        │   ├── OrderAsyncService.java
         │   └── impl/
         │       ├── CartServiceImpl.java
-        │       └── UserServiceImpl.java
+        │       ├── UserServiceImpl.java
+        │       ├── OrdersServiceImpl.java
+        │       ├── InvoiceServiceImpl.java
+        │       └── InvoicePdfServiceImpl.java
         ├── mapper/
         │   ├── CartMapper.java
         │   ├── ProductMapper.java
-        │   └── UserMapper.java
+        │   ├── UserMapper.java
+        │   ├── OrdersMapper.java
+        │   ├── OrderItemMapper.java
+        │   └── OrderInvoiceMapper.java
         ├── model/
         │   ├── Cart.java
         │   ├── Product.java
         │   ├── User.java
+        │   ├── Orders.java
+        │   ├── OrderItem.java
         │   ├── ApiResponse.java
         │   └── PageResult.java
         ├── dto/
@@ -225,14 +306,26 @@
         │   ├── UpdateCartQuantityRequest.java
         │   ├── UpdateCartSelectedRequest.java
         │   ├── UserRegisterRequest.java
-        │   └── UserLoginRequest.java
+        │   ├── UserLoginRequest.java
+        │   ├── OrderCreateRequest.java
+        │   ├── ProductAddDTO.java
+        │   └── OrderInvoiceDTO.java
         ├── vo/
         │   ├── CartItemVO.java
-        │   └── TotalCountVO.java
+        │   ├── TotalCountVO.java
+        │   ├── OrderCreateVO.java
+        │   ├── OrderDetailVO.java
+        │   └── OrderItemVO.java
+        ├── exception/
+        │   ├── BusinessException.java
+        │   ├── BadRequestException.java
+        │   ├── ForbiddenException.java
+        │   └── ResourceNotFoundException.java
         ├── interceptor/
         │   └── JwtInterceptor.java
         ├── utils/
-        │   └── JwtUtil.java
+        │   ├── JwtUtil.java
+        │   └── ImageUploadUtils.java
         └── pojo/
             └── User.java
 ```
