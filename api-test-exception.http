@@ -508,80 +508,80 @@ Authorization: Bearer {{token}}
 ### 五、Product：之前未覆盖的边界场景
 ### ############################################################
 
-### ==================== GET /api/products — 正常查询 ====================
+### ==================== GET /products — 正常查询 ====================
 
 ### 获取所有商品
-GET {{base}}/api/products
+GET {{base}}/products
 
-### ==================== GET /api/products/{id} — 边界场景 ====================
+### ==================== GET /products/{id} — 边界场景 ====================
 
 ### 查询存在的商品
-GET {{base}}/api/products/1
+GET {{base}}/products/1
 
 ### 查询不存在的商品
-GET {{base}}/api/products/99999
+GET {{base}}/products/99999
 
 ### id为0
-GET {{base}}/api/products/0
+GET {{base}}/products/0
 
 ### id为负数
-GET {{base}}/api/products/-1
+GET {{base}}/products/-1
 
 ### id为非数字
-GET {{base}}/api/products/abc
+GET {{base}}/products/abc
 
-### ==================== GET /api/products/search — 边界场景 ====================
+### ==================== GET /products/search — 边界场景 ====================
 
 ### 正常搜索
-GET {{base}}/api/products/search?keyword=手机
+GET {{base}}/products/search?keyword=手机
 
 ### 空关键词
-GET {{base}}/api/products/search?keyword=
+GET {{base}}/products/search?keyword=
 
 ### 无匹配结果
-GET {{base}}/api/products/search?keyword=xyz不存在的商品
+GET {{base}}/products/search?keyword=xyz不存在的商品
 
 ### 特殊字符关键词
-GET {{base}}/api/products/search?keyword=<script>
+GET {{base}}/products/search?keyword=<script>
 
 ### 缺少keyword参数
-GET {{base}}/api/products/search
+GET {{base}}/products/search
 
-### ==================== GET /api/products/page — 边界场景 ====================
+### ==================== GET /products/page — 边界场景 ====================
 
 ### 正常分页
-GET {{base}}/api/products/page?page=1&pageSize=5
+GET {{base}}/products/page?page=1&pageSize=5
 
 ### page=0
-GET {{base}}/api/products/page?page=0&pageSize=5
+GET {{base}}/products/page?page=0&pageSize=5
 
 ### page=负数
-GET {{base}}/api/products/page?page=-1&pageSize=5
+GET {{base}}/products/page?page=-1&pageSize=5
 
 ### pageSize=0
-GET {{base}}/api/products/page?page=1&pageSize=0
+GET {{base}}/products/page?page=1&pageSize=0
 
 ### pageSize超大概率值
-GET {{base}}/api/products/page?page=1&pageSize=10000
+GET {{base}}/products/page?page=1&pageSize=10000
 
 ### 缺少参数
-GET {{base}}/api/products/page
+GET {{base}}/products/page
 
 ### 按分类筛选
-GET {{base}}/api/products/page?page=1&pageSize=5&category=手机
+GET {{base}}/products/page?page=1&pageSize=5&category=手机
 
 ### 按分类+关键词组合
-GET {{base}}/api/products/page?page=1&pageSize=5&category=手机&keyword=华为
+GET {{base}}/products/page?page=1&pageSize=5&category=手机&keyword=华为
 
-### ==================== GET /api/categories ====================
+### ==================== GET /categories ====================
 
 ### 获取分类列表
-GET {{base}}/api/categories
+GET {{base}}/categories
 
-### ==================== POST /api/products — 边界场景 ====================
+### ==================== POST /products — 边界场景 ====================
 
 ### 正常新增商品
-POST {{base}}/api/products
+POST {{base}}/products
 Content-Type: application/json
 
 {
@@ -595,7 +595,7 @@ Content-Type: application/json
 }
 
 ### 名称为空
-POST {{base}}/api/products
+POST {{base}}/products
 Content-Type: application/json
 
 {
@@ -608,7 +608,7 @@ Content-Type: application/json
 }
 
 ### 价格为负数
-POST {{base}}/api/products
+POST {{base}}/products
 Content-Type: application/json
 
 {
@@ -621,7 +621,7 @@ Content-Type: application/json
 }
 
 ### 价格为0
-POST {{base}}/api/products
+POST {{base}}/products
 Content-Type: application/json
 
 {
@@ -634,7 +634,7 @@ Content-Type: application/json
 }
 
 ### 库存为负数
-POST {{base}}/api/products
+POST {{base}}/products
 Content-Type: application/json
 
 {
@@ -646,10 +646,10 @@ Content-Type: application/json
   "stock": -1
 }
 
-### ==================== PUT /api/products/{id} — 边界场景 ====================
+### ==================== PUT /products/{id} — 边界场景 ====================
 
 ### 正常更新商品
-PUT {{base}}/api/products/1
+PUT {{base}}/products/1
 Content-Type: application/json
 
 {
@@ -662,7 +662,7 @@ Content-Type: application/json
 }
 
 ### 更新不存在的商品
-PUT {{base}}/api/products/99999
+PUT {{base}}/products/99999
 Content-Type: application/json
 
 {
@@ -673,13 +673,13 @@ Content-Type: application/json
   "stock": 10
 }
 
-### ==================== DELETE /api/products/{id} — 边界场景 ====================
+### ==================== DELETE /products/{id} — 边界场景 ====================
 
 ### 删除不存在的商品
-DELETE {{base}}/api/products/99999
+DELETE {{base}}/products/99999
 
 ### 重复删除同一个商品（idempotency）
-DELETE {{base}}/api/products/99999
+DELETE {{base}}/products/99999
 
 ### ############################################################
 ### 六、User：之前未覆盖的边界场景
@@ -878,8 +878,8 @@ GET {{base}}/hello
 GET {{base}}/hello
 Authorization: Bearer {{token}}
 
-### /api/products 公开路径 — 无需Token
-GET {{base}}/api/products/1
+### /products 公开路径 — 无需Token
+GET {{base}}/products/1
 
 ### /cart 保护路径 — 无Token应拦截
 GET {{base}}/cart

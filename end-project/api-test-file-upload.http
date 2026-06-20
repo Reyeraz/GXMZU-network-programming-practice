@@ -11,7 +11,7 @@
 
 ### 1.1 正常新增商品 — 带图片
 # @name addProductWithImage
-POST http://localhost:8080/api/products/add
+POST http://localhost:8080/products/add
 Content-Type: multipart/form-data; boundary=WebAppBoundary
 
 --WebAppBoundary
@@ -51,7 +51,7 @@ Content-Type: image/jpeg
 
 ### 1.2 新增商品 — 不带图片（image 字段为空）
 # @name addProductWithoutImage
-POST http://localhost:8080/api/products/add
+POST http://localhost:8080/products/add
 Content-Type: multipart/form-data; boundary=WebAppBoundary
 
 --WebAppBoundary
@@ -79,7 +79,7 @@ Content-Disposition: form-data; name="isAvailable"
 ### ===== 2. 参数校验失败 =====
 
 ### 2.1 缺少必填字段（name 为空）
-POST http://localhost:8080/api/products/add
+POST http://localhost:8080/products/add
 Content-Type: multipart/form-data; boundary=WebAppBoundary
 
 --WebAppBoundary
@@ -101,7 +101,7 @@ Content-Disposition: form-data; name="isAvailable"
 --WebAppBoundary--
 
 ### 2.2 价格为 0
-POST http://localhost:8080/api/products/add
+POST http://localhost:8080/products/add
 Content-Type: multipart/form-data; boundary=WebAppBoundary
 
 --WebAppBoundary
@@ -127,7 +127,7 @@ Content-Disposition: form-data; name="isAvailable"
 --WebAppBoundary--
 
 ### 2.3 库存为负数
-POST http://localhost:8080/api/products/add
+POST http://localhost:8080/products/add
 Content-Type: multipart/form-data; boundary=WebAppBoundary
 
 --WebAppBoundary
@@ -153,7 +153,7 @@ Content-Disposition: form-data; name="isAvailable"
 --WebAppBoundary--
 
 ### 2.4 缺少 isAvailable
-POST http://localhost:8080/api/products/add
+POST http://localhost:8080/products/add
 Content-Type: multipart/form-data; boundary=WebAppBoundary
 
 --WebAppBoundary
@@ -183,7 +183,7 @@ GET http://localhost:8080/images/products/{{imageFileName}}
 ### ===== 4. 原有接口兼容性 =====
 
 ### 4.1 获取所有商品（验证图片 URL 字段）
-GET http://localhost:8080/api/products
+GET http://localhost:8080/products
 
 ### 4.2 根据 ID 获取商品
-GET http://localhost:8080/api/products/1
+GET http://localhost:8080/products/1

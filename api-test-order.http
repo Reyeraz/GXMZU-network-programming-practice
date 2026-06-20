@@ -1,7 +1,7 @@
 ### ==================== 订单模块 — 创建订单 ====================
 
 ### 变量：登录获取token后替换
-@token = eyJhbGciOiJIUzI1NiJ9...
+@token = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0dXNlciIsInVzZXJJZCI6NCwiaWF0IjoxNzgwOTgzMDEwLCJleHAiOjE3ODE1ODc4MTB9.YzwLsbrlzQ0tN1jpIH3ymelVLHaya10njanr_YhyMbo
 
 ### 1. 正常创建订单
 POST http://localhost:8080/orders/create
@@ -110,7 +110,6 @@ Authorization: Bearer {{token}}
   "address": "南京路200号"
 }
 
-### ==================== 订单模块 — 获取订单详情 ====================
 
 ### 10. 正常查询订单详情（替换{order_id}为实际订单ID）
 GET http://localhost:8080/orders/1

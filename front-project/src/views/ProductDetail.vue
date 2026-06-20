@@ -83,6 +83,7 @@ import { productAPI } from '../api/api.js'
 import PromotionTag from '../components/PromotionTag.vue'
 import CountdownTimer from '../components/CountdownTimer.vue'
 import { useCartStore } from '../stores/cart'
+import { useUserStore } from '../stores/user'
 
 // 接收路由参数
 const props = defineProps(['id'])
@@ -118,23 +119,32 @@ const fetchProductDetail = async () => {
 }
 
 const cartStore = useCartStore()
+const userStore = useUserStore()
 
 // 添加到购物车
-const addToCart = () => {
+const addToCart = async () => {
   if (!product.value || product.value.stock <= 0) return
 
-  cartStore.addToCart(
-    {
-      id: product.value.id,
-      name: product.value.name,
-      price: product.value.price,
-      image: product.value.image
-    },
-    quantity.value
-  )
+  if (!userStore.isLoggedIn) {
+    alert('请先登录')
+    router.push('/login')
+    return
+  }
 
-  alert('商品已加入购物车')
-  quantity.value = 1
+  try {
+    await cartStore.addToCart(
+      {
+        id: product.value.id,
+        name: product.value.name,
+        price: product.value.price
+      },
+      quantity.value
+    )
+    alert('商品已加入购物车')
+    quantity.value = 1
+  } catch (err) {
+    alert('添加失败，请重试')
+  }
 }
 
 // 页面加载时获取商品详情

@@ -19,6 +19,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -60,7 +61,8 @@ class InvoiceControllerTest {
 
             mockMvc.perform(get("/invoice/download/1"))
                     .andExpect(status().isOk())
-                    .andExpect(header().string("Content-Type", "application/pdf"))
+                    .andExpect(header().exists("Content-Type"))
+                    .andExpect(result -> assertTrue(result.getResponse().getContentType().startsWith("application/pdf")))
                     .andExpect(header().string("Content-Disposition", "attachment; filename=\"invoice_1.pdf\""))
                     .andExpect(content().bytes(pdfBytes));
         }

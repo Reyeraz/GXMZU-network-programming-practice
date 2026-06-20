@@ -1,53 +1,59 @@
-### 前后端联调测试
+### 前后端联调测试（第23次课）
+### 此文件通过 Vite 代理访问前端 API，路径带 /api/ 前缀
+### Vite 代理会自动 rewrite：/api/xxx → /xxx（后端实际路径）
 
-### 1. 商品相关接口（公开，无需Token）
+### ========== 环境变量 ==========
+@token = YOUR_TOKEN_HERE
 
-GET http://localhost:8080/api/products
+### ========== 1. 商品相关接口（公开，无需Token）==========
+
+### 获取所有商品
+GET http://localhost:5173/api/products
 Accept: application/json
 
 ### 获取分类列表
-GET http://localhost:8080/api/categories
+GET http://localhost:5173/api/categories
 Accept: application/json
 
 ### 分页查询商品
-GET http://localhost:8080/api/products/page?page=1&pageSize=4
+GET http://localhost:5173/api/products/page?page=1&pageSize=4
 Accept: application/json
 
 ### 根据ID获取商品
-GET http://localhost:8080/api/products/1
+GET http://localhost:5173/api/products/1
 Accept: application/json
 
 ### 搜索商品
-GET http://localhost:8080/api/products/search?keyword=手机
+GET http://localhost:5173/api/products/search?keyword=手机
 Accept: application/json
 
-### 2. 用户相关接口
+### ========== 2. 用户相关接口 ==========
 
 ### 用户注册
-POST http://localhost:8080/api/user/register
+POST http://localhost:5173/api/user/register
 Content-Type: application/json
 
 {
-  "username": "testuser",
+  "username": "testuser2",
   "password": "password123",
-  "phone": "13800138000",
-  "email": "test@example.com",
-  "address": "北京市朝阳区"
+  "phone": "13900139000",
+  "email": "test2@example.com",
+  "address": "上海市浦东新区"
 }
 
 ### 用户登录
-POST http://localhost:8080/api/user/login
+POST http://localhost:5173/api/user/login
 Content-Type: application/json
 
 {
-  "username": "testuser",
+  "username": "testuser2",
   "password": "password123"
 }
 
-### 3. 购物车相关接口（需要Token）
+### ========== 3. 购物车相关接口（需要Token）==========
 
-### 添加商品到购物车
-POST http://localhost:8080/api/cart
+### 添加商品1到购物车
+POST http://localhost:5173/api/cart
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
@@ -56,21 +62,31 @@ Authorization: Bearer {{token}}
   "quantity": 2
 }
 
-### 获取购物车列表
-GET http://localhost:8080/api/cart
-Authorization: Bearer {{token}}
-
-### 更新购物车数量
-PUT http://localhost:8080/api/cart/1
+### 添加商品2到购物车
+POST http://localhost:5173/api/cart
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "quantity": 3
+  "productId": 2,
+  "quantity": 1
 }
 
-### 更新勾选状态
-PUT http://localhost:8080/api/cart/1/selected
+### 获取购物车列表
+GET http://localhost:5173/api/cart
+Authorization: Bearer {{token}}
+
+### 更新购物车数量（cart_id=1改为3件）
+PUT http://localhost:5173/api/cart/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "newQuantity": 3
+}
+
+### 更新勾选状态（选中）
+PUT http://localhost:5173/api/cart/1/selected
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
@@ -79,7 +95,7 @@ Authorization: Bearer {{token}}
 }
 
 ### 全选
-PUT http://localhost:8080/api/cart/selected/batch
+PUT http://localhost:5173/api/cart/selected/batch
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
@@ -87,18 +103,18 @@ Authorization: Bearer {{token}}
   "selected": 1
 }
 
-### 删除单个购物车商品
-DELETE http://localhost:8080/api/cart/1
-Authorization: Bearer {{token}}
-
 ### 获取购物车数量
-GET http://localhost:8080/api/cart/count
+GET http://localhost:5173/api/cart/count
 Authorization: Bearer {{token}}
 
-### 4. 订单相关接口（需要Token）
+### 获取已勾选商品数
+GET http://localhost:5173/api/cart/selected/count
+Authorization: Bearer {{token}}
+
+### ========== 4. 订单相关接口（需要Token）==========
 
 ### 创建订单
-POST http://localhost:8080/api/orders/create
+POST http://localhost:5173/api/orders/create
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
@@ -106,13 +122,13 @@ Authorization: Bearer {{token}}
   "consignee": "张三",
   "telephone": "13800138000",
   "city": "北京",
-  "address": "朝阳路100号"
+  "address": "朝阳区建国路100号"
 }
 
-### 获取订单详情
-GET http://localhost:8080/api/orders/1
+### 获取订单详情（orderId=1）
+GET http://localhost:5173/api/orders/1
 Authorization: Bearer {{token}}
 
-### 下载订单发票
-GET http://localhost:8080/api/invoice/download/1
+### 下载订单发票（orderId=1）
+GET http://localhost:5173/api/invoice/download/1
 Authorization: Bearer {{token}}

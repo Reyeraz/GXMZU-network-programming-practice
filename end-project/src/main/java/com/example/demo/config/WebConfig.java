@@ -30,10 +30,10 @@ public class WebConfig implements WebMvcConfigurer {
             .excludePathPatterns(
                 "/user/login",
                 "/user/register",
-                "/api/products",
-                "/api/products/**",
-                "/api/categories",
-                "/api/categories/**",
+                "/products",
+                "/products/**",
+                "/categories",
+                "/categories/**",
                 "/hello",
                 "/images/**"
             );

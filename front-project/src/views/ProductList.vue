@@ -107,6 +107,7 @@ import { useRouter } from 'vue-router'
 import { productAPI } from '../api/api.js'
 import ImageCarousel from '../components/ImageCarousel.vue'
 import { useCartStore } from '../stores/cart'
+import { useUserStore } from '../stores/user'
 import { getProductImageUrl } from '../utils/image'
 
 // 路由实例
@@ -200,16 +201,25 @@ const handleCurrentChange = (page) => {
 }
 
 const cartStore = useCartStore()
+const userStore = useUserStore()
 
 // 添加到购物车
-const addToCart = (product) => {
-  cartStore.addToCart({
-    id: product.id,
-    name: product.name,
-    price: product.price,
-    image: product.image
-  })
-  alert('商品已加入购物车')
+const addToCart = async (product) => {
+  if (!userStore.isLoggedIn) {
+    alert('请先登录')
+    router.push('/login')
+    return
+  }
+  try {
+    await cartStore.addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price
+    })
+    alert('商品已加入购物车')
+  } catch (err) {
+    alert('添加失败，请重试')
+  }
 }
 
 // 页面加载时获取数据

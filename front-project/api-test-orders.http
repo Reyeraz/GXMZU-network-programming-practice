@@ -1,0 +1,91 @@
+### 订单模块接口测试
+
+### ========== 环境变量 ==========
+### 请先通过登录接口获取Token，然后替换下方的token值
+@token = YOUR_TOKEN_HERE
+
+### ========== 1. 创建订单 ==========
+
+### 创建订单 - 正常请求
+POST http://localhost:8080/orders/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "consignee": "张三",
+  "telephone": "13800138000",
+  "city": "北京",
+  "address": "朝阳路100号"
+}
+
+### 创建订单 - 另一个地址
+POST http://localhost:8080/orders/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "consignee": "李四",
+  "telephone": "13900139000",
+  "city": "上海",
+  "address": "浦东新区陆家嘴100号"
+}
+
+### 创建订单 - 缺少收货人（应返回错误）
+POST http://localhost:8080/orders/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "consignee": "",
+  "telephone": "13800138000",
+  "city": "北京",
+  "address": "朝阳路100号"
+}
+
+### 创建订单 - 电话格式错误（应返回错误）
+POST http://localhost:8080/orders/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "consignee": "王五",
+  "telephone": "12345",
+  "city": "北京",
+  "address": "朝阳路100号"
+}
+
+### 创建订单 - 缺少城市（应返回错误）
+POST http://localhost:8080/orders/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "consignee": "赵六",
+  "telephone": "13800138000",
+  "city": "",
+  "address": "朝阳路100号"
+}
+
+### ========== 2. 获取订单详情 ==========
+
+### 获取订单详情 - 订单ID为1
+GET http://localhost:8080/orders/1
+Authorization: Bearer {{token}}
+
+### 获取订单详情 - 订单ID为2
+GET http://localhost:8080/orders/2
+Authorization: Bearer {{token}}
+
+### 获取订单详情 - 不存在的订单ID（应返回错误或空）
+GET http://localhost:8080/orders/9999
+Authorization: Bearer {{token}}
+
+### ========== 3. 下载订单发票 ==========
+
+### 下载订单发票 - 订单ID为1
+GET http://localhost:8080/invoice/download/1
+Authorization: Bearer {{token}}
+
+### 下载订单发票 - 订单ID为2
+GET http://localhost:8080/invoice/download/2
+Authorization: Bearer {{token}}

@@ -1,17 +1,17 @@
 <template>
   <div class="checkout">
     <h1>确认订单</h1>
-    
-    <!-- 购物车为空时 -->
-    <div v-if="cartItems.length === 0" class="checkout-empty">
-      <el-empty description="您的购物车是空的，无法结算">
-        <router-link to="/">
-          <el-button type="primary">去购物</el-button>
+
+    <!-- 无已选商品时 -->
+    <div v-if="selectedItems.length === 0" class="checkout-empty">
+      <el-empty description="没有已选中的商品，无法结算">
+        <router-link to="/cart">
+          <el-button type="primary">返回购物车</el-button>
         </router-link>
       </el-empty>
     </div>
-    
-    <!-- 购物车有商品时 -->
+
+    <!-- 有已选商品时 -->
     <div v-else class="checkout-container">
       <!-- 收货信息表单 -->
       <el-card class="checkout-section">
@@ -20,31 +20,32 @@
             <h2>收货信息</h2>
           </div>
         </template>
-        <el-form :model="shippingInfo" label-width="80px" class="shipping-form">
-          <el-form-item label="姓名" prop="name" :rules="[{ required: true, message: '请输入您的姓名' }]">
-            <el-input v-model="shippingInfo.name" placeholder="请输入您的姓名" />
+        <el-form
+          ref="formRef"
+          :model="shippingInfo"
+          :rules="formRules"
+          label-width="80px"
+          class="shipping-form"
+        >
+          <el-form-item label="收货人" prop="consignee">
+            <el-input v-model="shippingInfo.consignee" placeholder="请输入收货人姓名" />
           </el-form-item>
-          <el-form-item label="手机号码" prop="phone" :rules="[{ required: true, message: '请输入您的手机号码' }]">
-            <el-input v-model="shippingInfo.phone" placeholder="请输入您的手机号码" />
-          </el-form-item>
-          <el-form-item label="详细地址" prop="address" :rules="[{ required: true, message: '请输入您的详细地址' }]">
-            <el-input v-model="shippingInfo.address" placeholder="请输入您的详细地址" />
+          <el-form-item label="手机号码" prop="telephone">
+            <el-input v-model="shippingInfo.telephone" placeholder="请输入手机号码" maxlength="11" />
           </el-form-item>
           <el-row :gutter="20">
             <el-col :span="12">
-              <el-form-item label="城市" prop="city" :rules="[{ required: true, message: '请输入城市' }]">
+              <el-form-item label="城市" prop="city">
                 <el-input v-model="shippingInfo.city" placeholder="请输入城市" />
               </el-form-item>
             </el-col>
-            <el-col :span="12">
-              <el-form-item label="邮编" prop="zipcode" :rules="[{ required: true, message: '请输入邮编' }]">
-                <el-input v-model="shippingInfo.zipcode" placeholder="请输入邮编" />
-              </el-form-item>
-            </el-col>
           </el-row>
+          <el-form-item label="详细地址" prop="address">
+            <el-input v-model="shippingInfo.address" placeholder="请输入详细地址" type="textarea" :rows="2" />
+          </el-form-item>
         </el-form>
       </el-card>
-      
+
       <!-- 订单商品列表 -->
       <el-card class="checkout-section">
         <template #header>
@@ -53,27 +54,34 @@
           </div>
         </template>
         <div class="order-items">
-          <el-divider v-for="(item, index) in cartItems" :key="item.id" :content-position="'center'" v-if="index > 0" />
-          <div 
-            v-for="item in cartItems" 
-            :key="item.id" 
+          <div
+            v-for="item in selectedItems"
+            :key="item.cartId"
             class="order-item"
           >
-            <el-row :gutter="20" type="flex" align="middle">
-              <el-col :span="18">
+            <el-row :gutter="20" align="middle">
+              <el-col :span="2">
+                <el-image
+                  :src="placeholderImage"
+                  :alt="item.name"
+                  fit="cover"
+                  style="width: 50px; height: 50px; border-radius: 4px;"
+                />
+              </el-col>
+              <el-col :span="14">
                 <div class="order-item-info">
                   <div class="order-item-name">{{ item.name }}</div>
                   <div class="order-item-quantity">x{{ item.quantity }}</div>
                 </div>
               </el-col>
-              <el-col :span="6" class="order-item-price">
+              <el-col :span="8" class="order-item-price">
                 ¥{{ (item.price * item.quantity).toFixed(2) }}
               </el-col>
             </el-row>
           </div>
         </div>
       </el-card>
-      
+
       <!-- 订单金额 -->
       <el-card class="checkout-section">
         <template #header>
@@ -90,20 +98,27 @@
             <span>运费：</span>
             <span>{{ shippingFee > 0 ? '¥' + shippingFee.toFixed(2) : '免运费' }}</span>
           </div>
-          <el-divider content-position="'center'" />
+          <el-divider />
           <div class="summary-item summary-total">
             <span>应付金额：</span>
             <span>¥{{ (totalPrice + shippingFee).toFixed(2) }}</span>
           </div>
         </div>
       </el-card>
-      
+
       <!-- 结算按钮 -->
       <div class="checkout-actions">
         <router-link to="/cart">
           <el-button size="large">返回购物车</el-button>
         </router-link>
-        <el-button type="primary" size="large" @click="placeOrder">提交订单</el-button>
+        <el-button
+          type="primary"
+          size="large"
+          :loading="submitting"
+          @click="placeOrder"
+        >
+          提交订单
+        </el-button>
       </div>
     </div>
   </div>
@@ -112,76 +127,107 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { useCartStore } from '../stores/cart'
+import { useUserStore } from '../stores/user'
+import { orderAPI } from '../api/api'
+// 购物车后端不返回图片，使用占位图
+const placeholderImage = '/placeholder.png'
 
 const router = useRouter()
 const cartStore = useCartStore()
+const userStore = useUserStore()
 
-// 购物车商品（从 Pinia store 获取）
-const cartItems = computed(() => cartStore.items)
+// 表单引用
+const formRef = ref(null)
 
-// 收货信息
-const shippingInfo = ref({
-  name: '',
-  phone: '',
-  address: '',
-  city: '',
-  zipcode: ''
-})
+// 提交中状态
+const submitting = ref(false)
 
-// 运费
-const shippingFee = ref(0)
+// 购物车中已选中的商品
+const selectedItems = computed(() =>
+  cartStore.items.filter(item => item.selected === 1)
+)
 
-// 计算商品总价（从 Pinia store 获取）
+// 已选商品总价
 const totalPrice = computed(() => cartStore.totalPrice)
 
-// 计算运费
-const calculateShippingFee = () => {
-  // 简单的运费计算：订单金额超过100免运费，否则10元运费
-  shippingFee.value = totalPrice.value >= 100 ? 0 : 10
+// 运费
+const shippingFee = computed(() => totalPrice.value >= 100 ? 0 : 10)
+
+// 收货信息（匹配后端 OrderCreateRequest 字段）
+const shippingInfo = ref({
+  consignee: '',
+  telephone: '',
+  city: '',
+  address: ''
+})
+
+// 表单校验规则
+const formRules = {
+  consignee: [
+    { required: true, message: '请输入收货人姓名', trigger: 'blur' }
+  ],
+  telephone: [
+    { required: true, message: '请输入手机号码', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号码', trigger: 'blur' }
+  ],
+  city: [
+    { required: true, message: '请输入城市', trigger: 'blur' }
+  ],
+  address: [
+    { required: true, message: '请输入详细地址', trigger: 'blur' }
+  ]
 }
 
 // 提交订单
-const placeOrder = () => {
-  // 验证收货信息
-  if (!shippingInfo.value.name || !shippingInfo.value.phone || !shippingInfo.value.address || !shippingInfo.value.city || !shippingInfo.value.zipcode) {
-    alert('请填写完整的收货信息')
+const placeOrder = async () => {
+  // 表单校验
+  if (!formRef.value) return
+  const valid = await formRef.value.validate().catch(() => false)
+  if (!valid) return
+
+  // 检查是否有已选商品
+  if (selectedItems.value.length === 0) {
+    ElMessage.warning('没有已选中的商品')
     return
   }
-  
-  // 生成订单号
-  const orderNo = `ORD-${Date.now()}`
-  
-  // 创建订单数据
-  const order = {
-    id: orderNo,
-    shippingInfo: { ...shippingInfo.value },
-    items: [...cartItems.value],
-    totalPrice: totalPrice.value,
-    shippingFee: shippingFee.value,
-    finalPrice: totalPrice.value + shippingFee.value,
-    orderTime: new Date().toISOString()
-  }
-  
-  // 保存订单到localStorage（实际项目中会发送到服务器）
-  const orders = JSON.parse(localStorage.getItem('orders') || '[]')
-  orders.push(order)
-  localStorage.setItem('orders', JSON.stringify(orders))
 
-  // 使用 Pinia store 清空购物车
-  cartStore.clearCart()
-  
-  // 跳转到订单成功页
-  router.push({
-    path: '/order/success',
-    query: { orderNo: orderNo }
-  })
+  submitting.value = true
+  try {
+    const res = await orderAPI.createOrder({
+      consignee: shippingInfo.value.consignee,
+      telephone: shippingInfo.value.telephone,
+      city: shippingInfo.value.city,
+      address: shippingInfo.value.address
+    })
+
+    if (res.success) {
+      ElMessage.success('下单成功！')
+      // 跳转到订单成功页，传递订单ID
+      router.push({
+        path: '/order/success',
+        query: {
+          orderId: res.data.orderId,
+          payAmount: res.data.payAmount
+        }
+      })
+    }
+  } catch (err) {
+    console.error('创建订单失败:', err)
+  } finally {
+    submitting.value = false
+  }
 }
 
-// 页面加载时加载购物车数据并计算运费
+// 页面加载时
 onMounted(() => {
+  if (!userStore.isLoggedIn) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
   cartStore.loadCart()
-  calculateShippingFee()
 })
 </script>
 
@@ -225,6 +271,11 @@ onMounted(() => {
 
 .order-item {
   padding: 0.75rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.order-item:last-child {
+  border-bottom: none;
 }
 
 .order-item-info {
@@ -279,7 +330,7 @@ onMounted(() => {
   .checkout-actions {
     flex-direction: column;
   }
-  
+
   .checkout-actions .el-button {
     width: 100%;
   }

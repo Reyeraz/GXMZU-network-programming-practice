@@ -47,7 +47,7 @@ class ProductControllerUploadTest {
     }
 
     @Nested
-    @DisplayName("POST /api/products/add — 新增商品（含图片上传）")
+    @DisplayName("POST /products/add — 新增商品（含图片上传）")
     class AddProductTests {
 
         @Test
@@ -56,7 +56,7 @@ class ProductControllerUploadTest {
             MockMultipartFile image = new MockMultipartFile(
                     "image", "test.jpg", "image/jpeg", "fake image".getBytes());
 
-            mockMvc.perform(multipart("/api/products/add")
+            mockMvc.perform(multipart("/products/add")
                             .file(image)
                             .param("category", "手机")
                             .param("name", "iPhone 16")
@@ -72,7 +72,7 @@ class ProductControllerUploadTest {
         @Test
         @DisplayName("200 — 正常新增商品（不带图片）")
         void shouldAddProductWithoutImage() throws Exception {
-            mockMvc.perform(multipart("/api/products/add")
+            mockMvc.perform(multipart("/products/add")
                             .param("category", "手机")
                             .param("name", "iPhone 16")
                             .param("price", "7999")
@@ -87,7 +87,7 @@ class ProductControllerUploadTest {
         @Test
         @DisplayName("400 — 参数校验失败（缺少必填字段）")
         void shouldFailWhenMissingRequired() throws Exception {
-            mockMvc.perform(multipart("/api/products/add")
+            mockMvc.perform(multipart("/products/add")
                             .param("category", "手机"))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.success").value(false));
@@ -96,7 +96,7 @@ class ProductControllerUploadTest {
         @Test
         @DisplayName("400 — 参数校验失败（价格为0）")
         void shouldFailWhenPriceZero() throws Exception {
-            mockMvc.perform(multipart("/api/products/add")
+            mockMvc.perform(multipart("/products/add")
                             .param("category", "手机")
                             .param("name", "iPhone 16")
                             .param("price", "0")
@@ -115,7 +115,7 @@ class ProductControllerUploadTest {
             doThrow(new BadRequestException("不支持的文件类型"))
                     .when(productService).addProductWithImage(any(), any());
 
-            mockMvc.perform(multipart("/api/products/add")
+            mockMvc.perform(multipart("/products/add")
                             .file(image)
                             .param("category", "手机")
                             .param("name", "iPhone 16")

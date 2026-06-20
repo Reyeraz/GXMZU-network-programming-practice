@@ -69,7 +69,9 @@ const handleLogin = async () => {
     if (res.success) {
       userStore.setAuth(res.data.token, form.username, 0)
       ElMessage.success('登录成功')
-      router.push('/')
+      // 登录后跳转到之前想访问的页面
+      const redirect = router.currentRoute.value.query.redirect || '/'
+      router.push(redirect)
     } else {
       ElMessage.error(res.message || '登录失败')
     }

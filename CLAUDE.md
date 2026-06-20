@@ -45,7 +45,7 @@ cd front-project && npm run build   # 构建
 | `model/` | 实体类（MyBatis-Plus `@TableName` 注解），含 `ApiResponse`/`PageResult` 通用响应 |
 | `mapper/` | MyBatis-Plus `BaseMapper`，使用 `@Update` 写自定义 SQL |
 | `service/` | 接口继承 `IService`，实现继承 `ServiceImpl<Mapper, Entity>`，用 `@RequiredArgsConstructor` 注入 |
-| `controller/` | `@RestController`，从 `request.getAttribute("userId")` 获取当前用户 |
+| `controller/` | `@RestContller`，从 `request.getAttribute("userId")` 获取当前用户 |
 | `dto/` | 请求体对象，使用 `jakarta.validation` 校验注解 |
 | `vo/` | 视图对象，用于组装返回数据 |
 | `config/` | `WebConfig`（CORS + JWT拦截器）、`SecurityConfig`（关闭默认安全，提供 BCrypt Bean）、`GlobalExceptionHandler` |
@@ -56,7 +56,9 @@ cd front-project && npm run build   # 构建
 
 **认证流程**：`JwtInterceptor.preHandle()` → 从 `Authorization: Bearer <token>` 解析 `userId` → 存入 `request.setAttribute("userId", userId)` → Controller 从 request 取 userId。
 
-**拦截器放行路径**（`WebConfig.addInterceptors`）：`/user/login`, `/user/register`, `/api/products/**`, `/api/categories/**`, `/hello`。新增公开接口需在此注册。
+**拦截器放行路径**（`WebConfig.addInterceptors`）：`/user/login`, `/user/register`, `/products/**`, `/categories/**`, `/hello`, `/images/**`。新增公开接口需在此注册。
+
+**Vite 代理**：前端请求 `/api/xxx` → Vite proxy rewrite 去掉 `/api` 前缀 → 后端 `/xxx`。ProductController 无 class-level 前缀（直接 `/products`）。
 
 **统一响应** `ApiResponse<T>`：
 - `ApiResponse.ok(data)` → `{"success": true, "data": ...}`

@@ -17,6 +17,9 @@ import Register from './views/Register.vue'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 
+// 需要登录才能访问的路由
+const AUTH_ROUTES = ['/cart', '/checkout', '/order/success']
+
 // 路由配置
 const router = createRouter({
   history: createWebHistory(),
@@ -32,6 +35,16 @@ const router = createRouter({
     { path: '/register', component: Register },
     { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound }
   ]
+})
+
+// 路由守卫 — 需要登录的页面自动跳转登录页
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token')
+  if (AUTH_ROUTES.includes(to.path) && !token) {
+    next({ path: '/login', query: { redirect: to.fullPath } })
+  } else {
+    next()
+  }
 })
 
 // 创建Vue应用
